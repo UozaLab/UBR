@@ -1,0 +1,45 @@
+﻿;
+; UTF-8(with BOM)
+;
+
+[Strings]
+Menu_Home = Home
+Menu_Backup = Backup
+Menu_Restore = Restore
+Menu_Clone = Clone
+Menu_Tools = Tools
+
+Title_Clone = Clone
+Title_Clone_s01 = Clone - Select a source disk
+Title_Clone_s02 = Clone - Select a destination disk
+Title_Clone_s03 = Clone - Progress
+Title_Restore = Restore
+Title_Restore_1 = Restore - Check the contents of the selected image file
+Title_Restore_s01 = Restore - Select a destination disk
+Title_Restore_s02 = Restore - Progress
+Title_Tools = Tools
+
+PrevBtnText = Prev
+NextBtnText = Next
+ClickNextToProceed = To continue, click Next.
+CancelBtnText = Cancel
+CancelingBtnText = Canceling
+CanceledBtnText = Canceled
+FinishBtnText = Finished
+
+Part_Capacity = Capacity
+Part_UsedSpace = Used Space
+OpenImageFile = Open image file
+SelectFileToRestore = Select an image file to restore
+StartRestoreBtnText = Start Restore
+
+StartCloneBtnText = Start Clone
+FastCloneBtnTitle = Fast Clone
+FastCloneBtnDesc = Fast clone just copies the data in use and skips empty area.\nNormally choose this option.\nYou can clone to a smaller HDD.
+ExactCloneBtnTitle = Exact Clone
+ExactCloneBtnDesc = Exact clone clones all the data on HDD. It takes a long time to clone.\nThis option is for advanced user.\nYou cannot clone to a smaller HDD.
+
+ToolsShell = Command Prompt
+ToolsShellDesc = Performs text-based (command-line) functions.
+
+Description = "UBR is a HDD backup, restore and clone utility.\nIt is is free for personal and commercial use."

@@ -1,0 +1,45 @@
+﻿;
+; UTF-8(with BOM)
+;
+
+[Strings]
+Menu_Home = ホーム
+Menu_Backup = バックアップ
+Menu_Restore = リストア
+Menu_Clone = クローン
+Menu_Tools = ツール
+
+Title_Clone = クローン
+Title_Clone_s01 = クローン - クローン元のディスクを選択してください
+Title_Clone_s02 = クローン - クローン先のディスクを選択してください
+Title_Clone_s03 = クローン - クローン処理中です
+Title_Restore = リストア
+Title_Restore_1 = リストア - ファイルの内容を確認してください
+Title_Restore_s01 = リストア - リストア先のディスクを選択してください
+Title_Restore_s02 = リストア - リストア処理中です
+Title_Tools = ツール
+
+PrevBtnText = 戻る
+NextBtnText = 次へ
+ClickNextToProceed = 次へを押してください
+CancelBtnText = キャンセル
+CancelingBtnText = キャンセル中
+CanceledBtnText = 中断しました
+FinishBtnText = 完了
+
+Part_Capacity = 容量
+Part_UsedSpace = 使用容量
+OpenImageFile = イメージファイルを開きます
+SelectFileToRestore = リストア用のイメージファイルを選択
+StartRestoreBtnText = リストア開始
+
+StartCloneBtnText = クローン開始
+FastCloneBtnTitle = 高速なクローン
+FastCloneBtnDesc = 高速なクローンは使用中のデータのみをコピーし、未使用データはスキップします。\n通常はこちらを選択してください。\nクローン元よりも小さな容量のHDDにクローンできます。
+ExactCloneBtnTitle = 厳密なクローン
+ExactCloneBtnDesc = 厳密なクローンはHDD上のすべてのデータをコピーします。クローンには時間がかかります。\nこのモードはPCに詳しい人用です。\nクローン元よりも小さな容量のHDDにはクローンできません。
+
+ToolsShell = コマンドプロンプト
+ToolsShellDesc = テキストベース（コマンドライン）の機能を実行できます。
+
+Description = "UBRはHDDのバックアップ、リストア、クローンユーティリティです。\n個人/商用どちらでも無料で利用できます。"
