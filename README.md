@@ -13,12 +13,23 @@ UBR is a HDD backup, restore and clone utility.
 * Improve performance by skipping non used area during copying(FAT12/16/32, NTFS)
 * Portable. No installation needed
 
+## Download Binaries
+
+* [GitHub Releases](https://github.com/UozaLab/UBR/releases)
+
+## Screenshot
+
+![](https://github.com/UozaLab/UBR/wiki/images/ubr_screenshot.png)
+
+## Wiki
+
+See documentation at the [Wiki](https://github.com/UozaLab/UBR/wiki)
+
 ## Project Status
 
 This project is in development phase.
 
-Features like backup or partition restore are not implemented yet.  
-Also documentation is lacking.
+Features like backup or partition restore are not implemented yet.
 
 
 ## Compiling
