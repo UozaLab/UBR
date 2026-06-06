@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, UozaLab
+ * Copyright (c) 2024-2026, UozaLab
  *
  * This program is free software: you can redistribute it and/or modify 
  * it under the terms of the GNU General Public License as published by 
@@ -29,5 +29,8 @@ typedef std::basic_istringstream<TCHAR> tistringstream;
 
 tstring string2tstring(const std::string& str);
 tstring wstring2tstring(const std::wstring& wstr);
+
+std::wstring string2wstring(const std::string& str);
+std::string wstring2string(const std::wstring &wstr);
 
 #endif

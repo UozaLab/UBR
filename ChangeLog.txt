@@ -1,0 +1,7 @@
+0.0.2 (2026.06.02)
+    support for making a bootable media to run a WinPE
+    switched the development environment from VisualStudio to MSYS2
+    drop WindowsXP support
+
+0.0.1 (2025.08.25)
+    initial release

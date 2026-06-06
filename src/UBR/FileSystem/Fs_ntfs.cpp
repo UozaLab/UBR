@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, UozaLab
+ * Copyright (c) 2024-2026, UozaLab
  *
  * This program is free software: you can redistribute it and/or modify 
  * it under the terms of the GNU General Public License as published by 
@@ -18,6 +18,7 @@
 #include "Fs_ntfs.h"
 #include "MbrGpt.h"
 #include <string>
+#include <algorithm>
 
 bool NTFSUtility::bit_table_created = false;
 UINT8 NTFSUtility::bit_table[256];
@@ -706,7 +707,7 @@ void NTFS::GetShrinkedSectorData(shared_ptr<DiskUpdaterCollection> data_collecti
         true);
     DWORD mft_mirror_sector = (FileRecordSize*4) / boot_sector_mod->BytesPerSector;
     holder.Append(partition_start_sector + boot_sector_mod->MftStartLcnMirr * boot_sector_mod->SectorsPerCluster,
-        partition_start_sector + boot_sector_mod->MftStartLcnMirr * boot_sector_mod->SectorsPerCluster + max(mft_mirror_sector, boot_sector_mod->SectorsPerCluster) -1,
+                  partition_start_sector + boot_sector_mod->MftStartLcnMirr * boot_sector_mod->SectorsPerCluster + std::max(mft_mirror_sector, (DWORD)boot_sector_mod->SectorsPerCluster) -1,
         true);
     holder.Append(partition_start_sector + 1, partition_start_sector + fixed_sectors, false);
 

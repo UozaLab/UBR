@@ -41,5 +41,7 @@ ExactCloneBtnDesc = Exact clone clones all the data on HDD. It takes a long time
 
 ToolsShell = Command Prompt
 ToolsShellDesc = Performs text-based (command-line) functions.
+ToolsWinPE = Make Bootable Media
+ToolsWinPEDesc = Make a bootable media to run a WinPE
 
 Description = "UBR is a HDD backup, restore and clone utility.\nIt is is free for personal and commercial use."

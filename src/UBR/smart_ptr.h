@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, UozaLab
+ * Copyright (c) 2024-2026, UozaLab
  *
  * This program is free software: you can redistribute it and/or modify 
  * it under the terms of the GNU General Public License as published by 
@@ -20,9 +20,14 @@
 
 #include <memory>
 
+#ifndef __GNUC__
 #if (_MSC_VER <= 1900) // Visual Studio 2015
 using std::tr1::shared_ptr;
 using std::tr1::enable_shared_from_this;
+#else
+using std::shared_ptr;
+using std::enable_shared_from_this;
+#endif
 #else
 using std::shared_ptr;
 using std::enable_shared_from_this;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, UozaLab
+ * Copyright (c) 2024-2026, UozaLab
  * This file is based on the RFC 1952 sample code.
  *
  * This program is free software: you can redistribute it and/or modify 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, UozaLab
+ * Copyright (c) 2024-2026, UozaLab
  *
  * This program is free software: you can redistribute it and/or modify 
  * it under the terms of the GNU General Public License as published by 
@@ -121,7 +121,12 @@ void SimpleButton::paintEvent(wxPaintEvent &evt)
     if(FrameMode)
     {
         if(Hovered)
-            dc.SetPen(wxPen(PenColour));
+        {
+            if(Selected)
+              dc.SetPen(wxPen(SelectedColour));
+            else
+              dc.SetPen(wxPen(PenColour));
+        }
         else
             dc.SetPen(*wxTRANSPARENT_PEN);
     }
@@ -140,8 +145,16 @@ void SimpleButton::paintEvent(wxPaintEvent &evt)
     else if (Selected)
     {
         if (Pressed) dc.SetBrush(wxBrush(PressedColour));
-        else if (Hovered) dc.SetBrush(wxBrush(HoveredColour));
-        else dc.SetBrush(wxBrush(NormalColour));
+        else if (Hovered)
+        {
+            if (FrameMode) dc.SetBrush(wxBrush(COLOR_BUTTON_FRAME_SELECTED));
+            else dc.SetBrush(wxBrush(HoveredColour));
+        }
+        else
+        {
+            if (FrameMode) dc.SetBrush(wxBrush(COLOR_BUTTON_FRAME_SELECTED));
+            else dc.SetBrush(wxBrush(NormalColour));
+        }
     }
     else
     {

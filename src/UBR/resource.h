@@ -19,6 +19,7 @@
 #define IDB_PNG15                       132
 #define IDB_PNG16                       133
 #define IDB_PNG17                       134
+#define IDB_PNG18                       135
 #define IDI_ICON1                       141
 
 // Next default values for new objects

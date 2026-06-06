@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, UozaLab
+ * Copyright (c) 2024-2026, UozaLab
  *
  * This program is free software: you can redistribute it and/or modify 
  * it under the terms of the GNU General Public License as published by 
@@ -68,7 +68,7 @@ PhysicalVSS::PhysicalVSS(int _disk_number, shared_ptr<DiskInfo> _di)
         volume_names.push_back(itr->VolumeGUIDPath);
     }
     
-    vss_created = (WinPE::RunOnPE()) ? false : vss.CreateSnapshot(volume_names);
+    vss_created = (SystemEnvironment::RunOnPE()) ? false : vss.CreateSnapshot(volume_names);
 
     std::map<int, PartitionSequence> seq_map;
     std::vector<int> seq_map_keys;

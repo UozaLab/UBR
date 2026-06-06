@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, UozaLab
+ * Copyright (c) 2024-2026, UozaLab
  *
  * This program is free software: you can redistribute it and/or modify 
  * it under the terms of the GNU General Public License as published by 
@@ -16,6 +16,7 @@
  */
 
 #include "VDiskStream.h"
+#include <algorithm>
 
 VirtualDiskStream::VirtualDiskStream(shared_ptr<VirtualDisk> _vdisk):
 vdisk(_vdisk), cache(NULL), cache_block_index(0)
@@ -76,7 +77,7 @@ UINT8* VirtualDiskStream::Read(UINT64 sector, UINT32 sector_count)
             DWORD ByteRead;
             bool can_skip;
             BOOL result = vdisk->GetBlockData(buff, block_index + i, &ByteRead, &can_skip);
-            ULONG copy_size = min((UINT)(ret + ret_size - ret_point), block_size-ofs);
+            ULONG copy_size = std::min((DWORD)(ret + ret_size - ret_point), block_size-ofs);
             memcpy(ret_point, buff + ofs, copy_size);
             if(i == 0)
             {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, UozaLab
+ * Copyright (c) 2024-2026, UozaLab
  *
  * This program is free software: you can redistribute it and/or modify 
  * it under the terms of the GNU General Public License as published by 
@@ -51,7 +51,7 @@ tstring Unit::HumanReadable(unsigned long long size)
     return oss.str();
 }
 
-bool WinPE::RunOnPE()
+bool SystemEnvironment::RunOnPE()
 {
     DWORD result;
     HKEY key = NULL;
@@ -59,4 +59,13 @@ bool WinPE::RunOnPE()
                           _T("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\WinPE"),
                           0, KEY_QUERY_VALUE, &key);
     return (result == ERROR_SUCCESS);
+}
+
+bool SystemEnvironment::RunAs32bit()
+{
+#if __MINGW64__
+    return false;
+#else
+    return true;
+#endif
 }

@@ -1,8 +1,8 @@
 #include <windows.h>
 
 VS_VERSION_INFO    VERSIONINFO
-FILEVERSION        0,0,1,0
-PRODUCTVERSION     0,0,1,0
+FILEVERSION        0,0,2,0
+PRODUCTVERSION     0,0,2,0
 FILEFLAGSMASK      0x3fL
 FILEFLAGS          0x00000000L
 FILEOS             VOS__WINDOWS32
@@ -20,12 +20,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName",      "UozaLab"
             VALUE "FileDescription",  ""
-            VALUE "FileVersion",      "0.0.1.0\0"
+            VALUE "FileVersion",      "0.0.2.0\0"
             VALUE "InternalName",     "\0"
-            VALUE "LegalCopyright",   "Copyright (c) 2024-2025 UozaLab\0"
+            VALUE "LegalCopyright",   "Copyright (c) 2024-2026 UozaLab\0"
             VALUE "OriginalFilename", "\0"
             VALUE "ProductName",      "UBR\0"
-            VALUE "ProductVersion",   "0.0.1.0\0"
+            VALUE "ProductVersion",   "0.0.2.0\0"
         END 
     END
 END

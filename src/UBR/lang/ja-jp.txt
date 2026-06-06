@@ -41,5 +41,7 @@ ExactCloneBtnDesc = 厳密なクローンはHDD上のすべてのデータをコ
 
 ToolsShell = コマンドプロンプト
 ToolsShellDesc = テキストベース（コマンドライン）の機能を実行できます。
+ToolsWinPE = ブータブルメディアの作成
+ToolsWinPEDesc = WinPEの起動メディアを作成します。
 
 Description = "UBRはHDDのバックアップ、リストア、クローンユーティリティです。\n個人/商用どちらでも無料で利用できます。"

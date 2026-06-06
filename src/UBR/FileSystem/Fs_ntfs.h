@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, UozaLab
+ * Copyright (c) 2024-2026, UozaLab
  *
  * This program is free software: you can redistribute it and/or modify 
  * it under the terms of the GNU General Public License as published by 
@@ -383,7 +383,7 @@ protected:
     UINT64 parse_size(DWORD FileRecordSize, NTFS_BPB* pbs, FILE_RECORD_HEADER* fr_header);
     tstring parse_volume_name(DWORD FileRecordSize, NTFS_BPB* pbs, FILE_RECORD_HEADER* fr_header);
     VOLUME_SIZE_INFO parse_volume_info(UINT64 partition_start_sector, NTFS_BPB* pbs, FILE_RECORD_HEADER* fr_header);
-    ParseResult NTFS::count_used_clusters(ULONGLONG count_start_sector, ULONGLONG sector_count, ULONGLONG cluster_count, DWORD BytesPerSector);
+    ParseResult count_used_clusters(ULONGLONG count_start_sector, ULONGLONG sector_count, ULONGLONG cluster_count, DWORD BytesPerSector);
 
 public:
     NTFS(shared_ptr<VirtualDiskStream> _stream);

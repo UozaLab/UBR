@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, UozaLab
+ * Copyright (c) 2024-2026, UozaLab
  *
  * This program is free software: you can redistribute it and/or modify 
  * it under the terms of the GNU General Public License as published by 
@@ -38,7 +38,8 @@ protected:
     void send_event()
     {
         wxThreadEvent* ev = new wxThreadEvent();
-        ev->SetPayload(const_cast<ThreadState>(state));
+        ThreadState state_n = state;
+        ev->SetPayload(state_n);
         wxQueueEvent(event_handler, ev);
     }
 
@@ -48,6 +49,10 @@ public:
       state(THREAD_NOTSTARTED),
       event_handler(_event_handler)
     {
+    }
+    wxEvtHandler* EventHandler()
+    {
+        return event_handler;
     }
     void Terminate()
     {
@@ -118,22 +123,58 @@ class MsgEvent : public wxEvent
 {
 protected:
     wxString what;
+    wxColour color;
+    bool colorized;
+    bool controled;
+    bool crlf;
 public:
     MsgEvent(wxString _what, wxEventType commandEventType = myEVT_MSG, int id = wxEVT_ANY)
-         : wxEvent(id, commandEventType), what(_what)
+         : wxEvent(id, commandEventType), what(_what), colorized(false), controled(true), crlf(true)
+    {
+    }
+    MsgEvent(wxString _what, bool _controled, bool _crlf, wxEventType commandEventType = myEVT_MSG, int id = wxEVT_ANY)
+         : wxEvent(id, commandEventType), what(_what), colorized(false), controled(_controled), crlf(_crlf)
+    {
+    }
+    MsgEvent(wxString _what, wxColour _color, wxEventType commandEventType = myEVT_MSG, int id = wxEVT_ANY)
+         : wxEvent(id, commandEventType), what(_what), colorized(true), controled(true), color(_color), crlf(true)
+    {
+    }
+    MsgEvent(wxString _what, wxColour _color, bool _controled, bool _crlf, wxEventType commandEventType = myEVT_MSG, int id = wxEVT_ANY)
+         : wxEvent(id, commandEventType), what(_what), colorized(true), controled(_controled), color(_color), crlf(_crlf)
     {
     }
     MsgEvent(const MsgEvent &event)
       : wxEvent(event)
     {
         this->what = event.what;
+        this->color = event.color;
+        this->colorized = event.colorized;
+        this->controled = event.controled;
+        this->crlf = event.crlf;
     }
     ~MsgEvent()
     {
     }
-    wxString GetData()
+    wxString GetData() const
     {
         return what;
+    }
+    wxColour GetColor() const
+    {
+        return color;
+    }
+    bool IsColorized() const
+    {
+        return colorized;
+    }
+    bool IsControled() const
+    {
+        return controled;
+    }
+    bool AppendCRLF() const
+    {
+        return crlf;
     }
     
     virtual wxEvent* Clone() const wxOVERRIDE { return new MsgEvent(*this); }

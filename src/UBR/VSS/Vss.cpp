@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, UozaLab
+ * Copyright (c) 2024-2026, UozaLab
  *
  * This program is free software: you can redistribute it and/or modify 
  * it under the terms of the GNU General Public License as published by 
@@ -17,8 +17,6 @@
 
 #include "Vss.h"
 #include <iostream>
-
-#pragma comment(lib, "VssApi.lib")
 
 Vss::Vss()
 : coinitialize_called(false), initialized(false)
@@ -63,15 +61,15 @@ bool Vss::initialize_backup_component()
     return true;
 
 END:
-    bc = NULL;
+    bc = nullptr;
     return false;
 }
 
-bool Vss::wait_and_check_async_operation(IVssAsync* pAsync)
+bool Vss::wait_and_check_async_operation(ComPtr<IVssAsync> pAsync)
 {
-    CHECK_COM(pAsync->Wait());
-
     HRESULT hrReturned = S_OK;
+
+    CHECK_COM(pAsync->Wait());
     CHECK_COM(pAsync->QueryStatus(&hrReturned, NULL));
 
     if(FAILED(hrReturned)) return false;
@@ -89,7 +87,7 @@ bool Vss::CreateSnapshot(const std::vector<tstring>& volumes)
     if(!initialize_backup_component()) goto END;
 
     {
-        CComPtr<IVssAsync> async;
+        ComPtr<IVssAsync> async;
         CHECK_COM(bc->GatherWriterMetadata(&async));
         if(!wait_and_check_async_operation(async)) goto END;
     }
@@ -106,19 +104,19 @@ bool Vss::CreateSnapshot(const std::vector<tstring>& volumes)
     }
 
     {
-        CComPtr<IVssAsync> async;
+        ComPtr<IVssAsync> async;
         CHECK_COM(bc->PrepareForBackup(&async));
         if(!wait_and_check_async_operation(async)) goto END;
     }
 
     {
-        CComPtr<IVssAsync> async;
+        ComPtr<IVssAsync> async;
         CHECK_COM(bc->DoSnapshotSet(&async));
         if(!wait_and_check_async_operation(async)) goto END;
     }
 
     {
-        CComPtr<IVssAsync> async;
+        ComPtr<IVssAsync> async;
         CHECK_COM(bc->BackupComplete(&async));
         if(!wait_and_check_async_operation(async)) goto END;
     }

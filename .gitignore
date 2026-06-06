@@ -1,11 +1,14 @@
 *.suo
 *.user
 *.bat
+*.o
+*.exe
 
 [Dd]ebug/
 [Rr]elease/
 x64/
 .vs/
+.vscode/
 
 
 ipch/

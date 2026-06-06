@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, UozaLab
+ * Copyright (c) 2024-2026, UozaLab
  *
  * This program is free software: you can redistribute it and/or modify 
  * it under the terms of the GNU General Public License as published by 
@@ -111,8 +111,24 @@ public:
     DECLARE_EVENT_TABLE()
 };
 
+#define BEGIN_EVENT_TABLE_TEMPLATE1_SPECIALIZED(theClass, baseClass, T1) \
+    template<> \
+    const wxEventTable theClass<T1>::sm_eventTable = \
+        { &baseClass::sm_eventTable, &theClass<T1>::sm_eventTableEntries[0] }; \
+    template<> \
+    const wxEventTable *theClass<T1>::GetEventTable() const \
+        { return &theClass<T1>::sm_eventTable; } \
+    template<> \
+    wxEventHashTable theClass<T1>::sm_eventHashTable(theClass<T1>::sm_eventTable); \
+    template<> \
+    wxEventHashTable &theClass<T1>::GetEventHashTable() const \
+        { return theClass<T1>::sm_eventHashTable; } \
+    template<> \
+    const wxEventTableEntry theClass<T1>::sm_eventTableEntries[] = { \
+
+
 #define IMPL_PROPAGATE_EVENT_TABLE(W) \
-BEGIN_EVENT_TABLE(EventPropagate<W>, W)\
+BEGIN_EVENT_TABLE_TEMPLATE1_SPECIALIZED(EventPropagate, W, W)\
     EVT_MOTION(EventPropagate<W>::propagate)\
     EVT_LEFT_DOWN(EventPropagate<W>::propagate)\
     EVT_LEFT_UP(EventPropagate<W>::propagate)\

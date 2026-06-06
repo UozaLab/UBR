@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, UozaLab
+ * Copyright (c) 2024-2026, UozaLab
  *
  * This program is free software: you can redistribute it and/or modify 
  * it under the terms of the GNU General Public License as published by 
@@ -26,10 +26,11 @@ public:
     tstring static HumanReadable(unsigned long long size);
 };
 
-class WinPE
+class SystemEnvironment
 {
 public:
     bool static RunOnPE();
+    bool static RunAs32bit();
 };
 
 #endif

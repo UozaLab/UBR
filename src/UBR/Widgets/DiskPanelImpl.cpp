@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, UozaLab
+ * Copyright (c) 2024-2026, UozaLab
  *
  * This program is free software: you can redistribute it and/or modify 
  * it under the terms of the GNU General Public License as published by 
@@ -163,7 +163,7 @@ wxPanel* DiskPanelImpl::AddDrivePanel(const PARTITION_INFORMATION_EX* partition_
 
     wxString part_size;
     part_size.Printf("%s %s", Unit::HumanReadable((unsigned long long) partition_info->PartitionLength.QuadPart),
-                              (volume_info.Invalid) ? wxEmptyString : wxString(volume_info.FilesystemInfo.TypeInfo.FileSystemName));
+                              (volume_info.Invalid) ? wxEmptyString : wxString(volume_info.FilesystemInfo.TypeInfo.FileSystemName).wc_str());
     wxString fs_info = wxEmptyString;
     GUID MicrosoftBasicData = { 0xEBD0A0A2, 0xB9E5, 0x4433, { 0x87, 0xc0, 0x68, 0xb6, 0xb7, 0x26, 0x99, 0xc7 } };
     if(partition_info->PartitionStyle == PARTITION_STYLE_GPT &&
@@ -210,7 +210,7 @@ wxPanel* DiskPanelImpl::AddDrivePanel(const PARTITION_INFORMATION_EX* partition_
         fs_info, 
         ttt("Part_Capacity"), part_size,
         (used_space == wxEmptyString) ? wxEmptyString :
-        wxString::Format("\r\n%s : %s", ttt("Part_UsedSpace"), used_space));
+        wxString::Format("\r\n%s : %s", ttt("Part_UsedSpace"), used_space).wc_str());
     m_panel1->SetToolTip(hint);
     m_staticText1->SetToolTip(hint);
     m_staticText2->SetToolTip(hint);
@@ -346,8 +346,8 @@ BEGIN_EVENT_TABLE(DiskPanelImpl, wxPanel)
     EVT_SIZE(DiskPanelImpl::sizeEvent)
 END_EVENT_TABLE()
 
-
 IMPL_PROPAGATE_EVENT_TABLE(wxPanel)
 IMPL_PROPAGATE_EVENT_TABLE(wxStaticText)
 IMPL_PROPAGATE_EVENT_TABLE(wxStaticBitmap)
 IMPL_PROPAGATE_EVENT_TABLE(ProgressPanel)
+

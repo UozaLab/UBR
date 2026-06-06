@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, UozaLab
+ * Copyright (c) 2024-2026, UozaLab
  *
  * This program is free software: you can redistribute it and/or modify 
  * it under the terms of the GNU General Public License as published by 
@@ -134,7 +134,7 @@ wxString Utility::GetVersion()
 
     UINT8 buff[2048];
     ZeroMemory(buff, 2048);
-    if(!GetFileVersionInfo(exe_name, NULL, size, buff)) return wxEmptyString;
+    if(!GetFileVersionInfo(exe_name, (DWORD)NULL, size, buff)) return wxEmptyString;
 
     UINT length;
     VS_FIXEDFILEINFO* ver_info;

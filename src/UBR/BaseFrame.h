@@ -34,9 +34,10 @@
 
 ///////////////////////////////////////////////////////////////////////////
 
-#define wxID_RESTORE_SELECTFILE 1000
-#define wxID_BACKUP_DISK 1001
-#define wxID_BACKUP_PART 1002
+#define wxID_PANEL_ROOT 1000
+#define wxID_RESTORE_SELECTFILE 1001
+#define wxID_BACKUP_DISK 1002
+#define wxID_BACKUP_PART 1003
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class BaseFrame
@@ -335,6 +336,7 @@ class Container_Restore_s02 : public wxFrame
 	private:
 
 	protected:
+		wxPanel* m_panel_restore;
 		wxPanel* m_panel71;
 		wxStaticText* m_staticText81;
 		wxPanel* m_panel171;
@@ -348,7 +350,7 @@ class Container_Restore_s02 : public wxFrame
 
 
 	public:
-		wxScrolledWindow* m_panel_restore;
+		wxScrolledWindow* m_scrolledwindow;
 
 		Container_Restore_s02( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 350,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 
@@ -364,17 +366,19 @@ class Container_Tools : public wxFrame
 	private:
 
 	protected:
+		wxPanel* m_panel_tool;
 		wxPanel* m_panel71;
 		wxStaticText* m_staticText81;
 		wxPanel* m_panel171;
 		SimpleButton* m_customControl61;
+		SimpleButton* m_customControl71;
 
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnClose( wxCloseEvent& event ) { event.Skip(); }
 
 
 	public:
-		wxScrolledWindow* m_panel_tools;
+		wxScrolledWindow* m_scrolledwindow;
 
 		Container_Tools( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 

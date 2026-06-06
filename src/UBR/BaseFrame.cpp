@@ -77,7 +77,7 @@ BaseFrame::BaseFrame( wxWindow* parent, wxWindowID id, const wxString& title, co
 
 	fgSizer1->Add( m_panel_line, 1, wxEXPAND, 0 );
 
-	m_container_panel = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxSize( 350,-1 ), wxTAB_TRAVERSAL );
+	m_container_panel = new wxPanel( this, wxID_PANEL_ROOT, wxDefaultPosition, wxSize( 350,-1 ), wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer71;
 	bSizer71 = new wxBoxSizer( wxVERTICAL );
 
@@ -114,7 +114,7 @@ Container_Common::Container_Common( wxWindow* parent, wxWindowID id, const wxStr
 	wxBoxSizer* bSizer4;
 	bSizer4 = new wxBoxSizer( wxVERTICAL );
 
-	m_panel_common = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel_common = new wxPanel( this, wxID_PANEL_ROOT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	m_panel_common->SetBackgroundColour( wxColour( 245, 245, 245 ) );
 
 	wxBoxSizer* bSizer36;
@@ -284,7 +284,7 @@ Container_Home::Container_Home( wxWindow* parent, wxWindowID id, const wxString&
 	wxBoxSizer* bSizer4;
 	bSizer4 = new wxBoxSizer( wxVERTICAL );
 
-	m_panel_home = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel_home = new wxPanel( this, wxID_PANEL_ROOT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	m_panel_home->SetBackgroundColour( wxColour( 245, 245, 245 ) );
 
 	wxBoxSizer* bSizer5;
@@ -439,7 +439,7 @@ Container_Clone::Container_Clone( wxWindow* parent, wxWindowID id, const wxStrin
 	wxBoxSizer* bSizer4;
 	bSizer4 = new wxBoxSizer( wxVERTICAL );
 
-	m_panel_clone = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel_clone = new wxPanel( this, wxID_PANEL_ROOT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	m_panel_clone->SetBackgroundColour( wxColour( 245, 245, 245 ) );
 
 	wxBoxSizer* bSizer36;
@@ -529,7 +529,7 @@ Container_Clone_s01::Container_Clone_s01( wxWindow* parent, wxWindowID id, const
 	wxBoxSizer* bSizer4;
 	bSizer4 = new wxBoxSizer( wxVERTICAL );
 
-	m_panel_clone = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel_clone = new wxPanel( this, wxID_PANEL_ROOT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	m_panel_clone->SetBackgroundColour( wxColour( 245, 245, 245 ) );
 
 	wxBoxSizer* bSizer36;
@@ -623,7 +623,7 @@ Container_Clone_s02::Container_Clone_s02( wxWindow* parent, wxWindowID id, const
 	wxBoxSizer* bSizer4;
 	bSizer4 = new wxBoxSizer( wxVERTICAL );
 
-	m_panel_clone = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel_clone = new wxPanel( this, wxID_PANEL_ROOT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	m_panel_clone->SetBackgroundColour( wxColour( 245, 245, 245 ) );
 
 	wxBoxSizer* bSizer36;
@@ -827,7 +827,7 @@ Container_Restore::Container_Restore( wxWindow* parent, wxWindowID id, const wxS
 	wxBoxSizer* bSizer8;
 	bSizer8 = new wxBoxSizer( wxVERTICAL );
 
-	m_panel_restore = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel_restore = new wxPanel( this, wxID_PANEL_ROOT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	m_panel_restore->SetBackgroundColour( wxColour( 245, 245, 245 ) );
 
 	wxBoxSizer* bSizer35;
@@ -928,7 +928,7 @@ Container_Restore_s01::Container_Restore_s01( wxWindow* parent, wxWindowID id, c
 	wxBoxSizer* bSizer8;
 	bSizer8 = new wxBoxSizer( wxVERTICAL );
 
-	m_panel_restore = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel_restore = new wxPanel( this, wxID_PANEL_ROOT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	m_panel_restore->SetBackgroundColour( wxColour( 245, 245, 245 ) );
 
 	wxBoxSizer* bSizer34;
@@ -1015,14 +1015,18 @@ Container_Restore_s02::Container_Restore_s02( wxWindow* parent, wxWindowID id, c
 	wxBoxSizer* bSizer8;
 	bSizer8 = new wxBoxSizer( wxVERTICAL );
 
-	m_panel_restore = new wxScrolledWindow( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxVSCROLL );
-	m_panel_restore->SetScrollRate( 5, 5 );
-	m_panel_restore->SetBackgroundColour( wxColour( 245, 245, 245 ) );
+	m_panel_restore = new wxPanel( this, wxID_PANEL_ROOT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* bSizer63;
+	bSizer63 = new wxBoxSizer( wxVERTICAL );
+
+	m_scrolledwindow = new wxScrolledWindow( m_panel_restore, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxVSCROLL );
+	m_scrolledwindow->SetScrollRate( 5, 5 );
+	m_scrolledwindow->SetBackgroundColour( wxColour( 245, 245, 245 ) );
 
 	wxBoxSizer* bSizer20;
 	bSizer20 = new wxBoxSizer( wxVERTICAL );
 
-	m_panel71 = new wxPanel( m_panel_restore, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel71 = new wxPanel( m_scrolledwindow, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	m_panel71->SetBackgroundColour( wxColour( 225, 225, 225 ) );
 
 	wxBoxSizer* bSizer111;
@@ -1047,7 +1051,7 @@ Container_Restore_s02::Container_Restore_s02( wxWindow* parent, wxWindowID id, c
 	bSizer111->Fit( m_panel71 );
 	bSizer20->Add( m_panel71, 0, wxEXPAND | wxALL, 0 );
 
-	m_panel171 = new wxPanel( m_panel_restore, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel171 = new wxPanel( m_scrolledwindow, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer191;
 	bSizer191 = new wxBoxSizer( wxVERTICAL );
 
@@ -1077,10 +1081,16 @@ Container_Restore_s02::Container_Restore_s02( wxWindow* parent, wxWindowID id, c
 	bSizer20->Add( m_panel171, 1, wxEXPAND | wxALL, 0 );
 
 
-	m_panel_restore->SetSizer( bSizer20 );
+	m_scrolledwindow->SetSizer( bSizer20 );
+	m_scrolledwindow->Layout();
+	bSizer20->Fit( m_scrolledwindow );
+	bSizer63->Add( m_scrolledwindow, 1, wxEXPAND | wxALL, 5 );
+
+
+	m_panel_restore->SetSizer( bSizer63 );
 	m_panel_restore->Layout();
-	bSizer20->Fit( m_panel_restore );
-	bSizer8->Add( m_panel_restore, 1, wxEXPAND | wxALL, 5 );
+	bSizer63->Fit( m_panel_restore );
+	bSizer8->Add( m_panel_restore, 1, wxEXPAND, 0 );
 
 
 	this->SetSizer( bSizer8 );
@@ -1106,14 +1116,18 @@ Container_Tools::Container_Tools( wxWindow* parent, wxWindowID id, const wxStrin
 	wxBoxSizer* bSizer8;
 	bSizer8 = new wxBoxSizer( wxVERTICAL );
 
-	m_panel_tools = new wxScrolledWindow( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxVSCROLL );
-	m_panel_tools->SetScrollRate( 5, 5 );
-	m_panel_tools->SetBackgroundColour( wxColour( 245, 245, 245 ) );
+	m_panel_tool = new wxPanel( this, wxID_PANEL_ROOT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* bSizer62;
+	bSizer62 = new wxBoxSizer( wxVERTICAL );
+
+	m_scrolledwindow = new wxScrolledWindow( m_panel_tool, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxVSCROLL );
+	m_scrolledwindow->SetScrollRate( 5, 5 );
+	m_scrolledwindow->SetBackgroundColour( wxColour( 245, 245, 245 ) );
 
 	wxBoxSizer* bSizer20;
 	bSizer20 = new wxBoxSizer( wxVERTICAL );
 
-	m_panel71 = new wxPanel( m_panel_tools, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel71 = new wxPanel( m_scrolledwindow, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	m_panel71->SetBackgroundColour( wxColour( 225, 225, 225 ) );
 
 	wxBoxSizer* bSizer111;
@@ -1138,12 +1152,15 @@ Container_Tools::Container_Tools( wxWindow* parent, wxWindowID id, const wxStrin
 	bSizer111->Fit( m_panel71 );
 	bSizer20->Add( m_panel71, 0, wxEXPAND | wxALL, 0 );
 
-	m_panel171 = new wxPanel( m_panel_tools, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel171 = new wxPanel( m_scrolledwindow, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer191;
 	bSizer191 = new wxBoxSizer( wxVERTICAL );
 
 	m_customControl61 = new SimpleButton( m_panel171, wxID_BACKUP_DISK, wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer191->Add( m_customControl61, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 12 );
+
+	m_customControl71 = new SimpleButton( m_panel171, wxID_BACKUP_DISK, wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer191->Add( m_customControl71, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 12 );
 
 
 	m_panel171->SetSizer( bSizer191 );
@@ -1152,10 +1169,16 @@ Container_Tools::Container_Tools( wxWindow* parent, wxWindowID id, const wxStrin
 	bSizer20->Add( m_panel171, 1, wxEXPAND | wxALL, 0 );
 
 
-	m_panel_tools->SetSizer( bSizer20 );
-	m_panel_tools->Layout();
-	bSizer20->Fit( m_panel_tools );
-	bSizer8->Add( m_panel_tools, 1, wxEXPAND | wxALL, 0 );
+	m_scrolledwindow->SetSizer( bSizer20 );
+	m_scrolledwindow->Layout();
+	bSizer20->Fit( m_scrolledwindow );
+	bSizer62->Add( m_scrolledwindow, 1, wxEXPAND | wxALL, 0 );
+
+
+	m_panel_tool->SetSizer( bSizer62 );
+	m_panel_tool->Layout();
+	bSizer62->Fit( m_panel_tool );
+	bSizer8->Add( m_panel_tool, 1, wxEXPAND, 0 );
 
 
 	this->SetSizer( bSizer8 );

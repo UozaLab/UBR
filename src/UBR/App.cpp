@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2024-2025, UozaLab
+ * Copyright (c) 2024-2026, UozaLab
  *
  * This program is free software: you can redistribute it and/or modify 
  * it under the terms of the GNU General Public License as published by 
@@ -28,7 +28,7 @@ bool MyApp::OnInit()
     
     wxInitAllImageHandlers();
 
-    FrameImpl* frame = new FrameImpl(NULL);
+    FrameImpl* frame = new FrameImpl();
     frame->Show(true);
     return true;
 }

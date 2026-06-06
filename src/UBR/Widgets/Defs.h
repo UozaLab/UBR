@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, UozaLab
+ * Copyright (c) 2024-2026, UozaLab
  *
  * This program is free software: you can redistribute it and/or modify 
  * it under the terms of the GNU General Public License as published by 
@@ -36,6 +36,7 @@
 #define COLOR_BUTTON_PEN_VIVID wxColour(21,61,148)
 #define COLOR_BUTTON_PEN_ENHANCE wxColour(226,159,0)
 #define COLOR_BUTTON_PEN wxColour(0,0,0)
+#define COLOR_BUTTON_FRAME_SELECTED wxColour(230,255,255)
 
 #define COLOR_BACKGROUND_RIGHTPANEL wxColour(225, 225, 225)
 #define COLOR_BACKGROUND_RIGHTPANEL_DRIVE wxColour(255, 255, 255)
@@ -45,5 +46,7 @@
 #define COLOR_BACKGROUND_HOVER wxColour(95, 145, 226)
 #define COLOR_BACKGROUND_DISABLED_RIGHTPANEL wxColour(100, 100, 100)
 #define COLOR_BACKGROUND_DISABLED_RIGHTPANEL_DRIVE wxColour(100, 100, 100)
+
+#define COLOR_BACKGROUND_PANELBASE wxColour(245, 245, 245)
 
 #endif

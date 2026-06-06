@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, UozaLab
+ * Copyright (c) 2024-2026, UozaLab
  *
  * This program is free software: you can redistribute it and/or modify 
  * it under the terms of the GNU General Public License as published by 
@@ -19,8 +19,8 @@
 #define __VSS_H__
 
 #include <windows.h>
-#include <atlbase.h>
-
+#include <wrl/client.h>
+using Microsoft::WRL::ComPtr;
 #include <vss.h>
 #include <vswriter.h>
 #include <vsbackup.h>
@@ -48,9 +48,9 @@ private:
     bool coinitialize_called;
     bool initialized;
     std::vector<VSS_SNAPSHOT_PROP> properties;
-    CComPtr<IVssBackupComponents> bc;
+    ComPtr<IVssBackupComponents> bc;
 
-    bool wait_and_check_async_operation(IVssAsync*  pAsync);
+    bool wait_and_check_async_operation(ComPtr<IVssAsync> pAsync);
     bool initialize_backup_component();
 
 public:

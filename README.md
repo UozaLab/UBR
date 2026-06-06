@@ -4,14 +4,16 @@ UBR is a HDD backup, restore and clone utility.
 
 ## Features
 
-* Designed for Windows XP/7/10/11
+* Designed for Windows 7/10/11
 * Run on Windows PE/SE
 * Support for MBR/GPT
 * Restore from VHD, VHDX and RAW(DD) images
 * Restore and clone to a smaller HDD
 * Live clone by using VSS snapshots
 * Improve performance by skipping non used area during copying(FAT12/16/32, NTFS)
+* Support for making a bootable media to run a WinPE
 * Portable. No installation needed
+* Free for personal and commercial use
 
 ## Download Binaries
 
@@ -34,6 +36,6 @@ Features like backup or partition restore are not implemented yet.
 
 ## Compiling
 
-* Visual Studio 2008+
-* wxWidgets-3.2.8.7
+* msys2(mingw32/mingw64)
+* wxWidgets-3.2.10
 

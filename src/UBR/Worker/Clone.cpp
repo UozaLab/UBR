@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, UozaLab
+ * Copyright (c) 2024-2026, UozaLab
  *
  * This program is free software: you can redistribute it and/or modify 
  * it under the terms of the GNU General Public License as published by 
@@ -107,7 +107,7 @@ void* CloneWorker::Entry()
         wxQueueEvent(event_handler, new MsgEvent("Snapshot created"));
     else
     {
-        if(WinPE::RunOnPE())
+        if(SystemEnvironment::RunOnPE())
         {
             wxQueueEvent(event_handler, new MsgEvent("Run on WinPE"));
             wxQueueEvent(event_handler, new MsgEvent("Skip creating a snapshot"));

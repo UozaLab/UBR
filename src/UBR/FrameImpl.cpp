@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, UozaLab
+ * Copyright (c) 2024-2026, UozaLab
  *
  * This program is free software: you can redistribute it and/or modify 
  * it under the terms of the GNU General Public License as published by 
@@ -23,16 +23,80 @@
 #include "FileSystem/ForensicAnalysis.h"
 #include "FileSystem/VdiskFactory.h"
 #include "Worker/Restore.h"
+#include "Misc.h"
 #include <windows.h>
 #include <wx/mstream.h>
 #include <wx/msw/private.h>
 #include <wx/dir.h>
 
+wxFrame* Container_Util::BaseFrame = nullptr;
+wxFrame* Container_Util::CurrentFrame = nullptr;
+
+//
+// ProgressHandler
+//
+ProgressHandler::ProgressHandler(wxEvtHandler* _event_handler)
+     : event_handler(_event_handler), ready_to_goback(false), ready_to_gonext(false), error(false)
+{
+    event_handler->Bind(myEVT_PROGRESS, &ProgressHandler::OnProgress, this);
+    event_handler->Bind(myEVT_MSG, &ProgressHandler::OnMsg, this);
+    event_handler->Bind(myEVT_ERROR, &ProgressHandler::OnError, this);
+    event_handler->Bind(wxEVT_THREAD, &ProgressHandler::OnThreadEvent, this);
+}
+
+ProgressHandler::~ProgressHandler()
+{
+    event_handler->Unbind(wxEVT_THREAD, &ProgressHandler::OnThreadEvent, this);
+    event_handler->Unbind(myEVT_ERROR, &ProgressHandler::OnError, this);
+    event_handler->Unbind(myEVT_MSG, &ProgressHandler::OnMsg, this);
+    event_handler->Unbind(myEVT_PROGRESS, &ProgressHandler::OnProgress, this);
+}
+
+void ProgressHandler::write_msg(wxTextCtrl* ctrl, const wxString& str)
+{
+    ctrl->AppendText(wxDateTime::Now().Format(wxString("%H:%M:%S ")));
+    ctrl->AppendText(wxString::Format("%s\r\n", str));
+}
+
+void ProgressHandler::write_msg(wxTextCtrl* ctrl, const wxString& str, wxColor color)
+{
+    ctrl->AppendText(wxDateTime::Now().Format(wxString("%H:%M:%S ")));
+    long start = ctrl->GetInsertionPoint();
+    ctrl->AppendText(str);
+    long end = ctrl->GetInsertionPoint();
+    wxTextAttr style(color);
+    ctrl->SetStyle(start, end, style);
+    ctrl->AppendText("\r\n");
+}
+
+void ProgressHandler::write_msg(wxTextCtrl* ctrl, const MsgEvent& msg)
+{
+    long start = ctrl->GetInsertionPoint();
+    if(msg.IsControled())
+    {
+        ctrl->AppendText(wxDateTime::Now().Format(wxString("%H:%M:%S ")));
+        start = ctrl->GetInsertionPoint();
+        ctrl->AppendText(msg.GetData());
+    }
+    else
+    {
+        ctrl->AppendText(msg.GetData());
+    }
+    long end = ctrl->GetInsertionPoint();
+
+    if(msg.IsColorized())
+    {
+        wxTextAttr style(msg.GetColor());
+        ctrl->SetStyle(start, end, style);
+    }
+    if(msg.AppendCRLF()) ctrl->AppendText("\r\n");
+}
+
 //
 // FrameImpl
 //
-FrameImpl::FrameImpl( wxWindow* parent )
-: BaseFrame( parent ), CurrentFrame(NULL)
+FrameImpl::FrameImpl()
+: BaseFrame( nullptr )
 {
     HICON hicon = (HICON) LoadIcon(wxGetInstance(), MAKEINTRESOURCE(IDI_ICON1));
     wxIcon icon;
@@ -42,7 +106,7 @@ FrameImpl::FrameImpl( wxWindow* parent )
     wxFileName file = wxFileName(wxStandardPaths::Get().GetExecutablePath());
     file.AppendDir("lang");
     wxArrayString as;
-    int num_files = wxDir::GetAllFiles(file.GetPath(), &as);
+    int num_files = wxDir::GetAllFiles(file.GetPath(), &as, "*.txt", wxDIR_FILES);
     for(int i = 0; i < num_files; i++)
     {
         wxFileName lang_file = wxFileName(as[i]);
@@ -72,10 +136,11 @@ FrameImpl::FrameImpl( wxWindow* parent )
     m_customControl4->Bind( myEVT_SimpleButtonClicked, &FrameImpl::OnClickClone, this);
     m_customControl5->Bind( myEVT_SimpleButtonClicked, &FrameImpl::OnClickTools, this);
 
-    OnClickHome(wxCommandEvent());
-
     di = DiskInfoFactory::CreateDiskInfo();
 
+    Container_Util::SetNewframe(this);
+    wxCommandEvent ev;
+    OnClickHome(ev);
 }
 
 void FrameImpl::init_language()
@@ -111,52 +176,36 @@ void FrameImpl::OnClose( wxCloseEvent& event )
     m_customControl2->Unbind( myEVT_SimpleButtonClicked, &FrameImpl::OnClickBackup, this);
     m_customControl1->Unbind( myEVT_SimpleButtonClicked, &FrameImpl::OnClickHome, this);
 
-    if(CurrentFrame != NULL)
-    {
-        CurrentFrame->Close();
-        delete CurrentFrame;
-    }
+    Container_Util::DisposeCurrentFrame();
+    Destroy();
 
     delete MultiLanguage::Instance();
-    Destroy();
 }
 
 void FrameImpl::OnClickHome( wxCommandEvent& event )
 {
     deselect_all(m_customControl1);
-    Container_Home* TargetFrame = new Container_HomeImpl(NULL);
-    set_new_frame_and_panel(TargetFrame, TargetFrame->m_panel_home);
+    Container_Util::SetNewframe(new Container_HomeImpl(this));
 
 }
 void FrameImpl::OnClickBackup( wxCommandEvent& event )
 {
-    deselect_all(m_customControl2);
-#if 0
-    Container_Backup* TargetFrame = new Container_BackupImpl(NULL, this);
-    set_new_frame_and_panel(TargetFrame, TargetFrame->m_panel_backup);
-#else
-    set_new_frame_and_panel(NULL, NULL);
-#endif
-
 }
 void FrameImpl::OnClickRestore( wxCommandEvent& event )
 {
     deselect_all(m_customControl3);
-    Container_RestoreImpl* TargetFrame = new Container_RestoreImpl(NULL, this);
-    set_new_frame_and_panel(TargetFrame, TargetFrame->m_panel_restore);
+    Container_Util::SetNewframe(new Container_RestoreImpl(this));
 }
 void FrameImpl::OnClickClone( wxCommandEvent& event )
 {
     deselect_all(m_customControl4);
-    Container_CloneImpl* TargetFrame = new Container_CloneImpl(NULL, this);
-    set_new_frame_and_panel(TargetFrame, TargetFrame->m_panel_clone);
+    Container_Util::SetNewframe(new Container_CloneImpl(this));
 }
 
 void FrameImpl::OnClickTools( wxCommandEvent& event )
 {
     deselect_all(m_customControl5);
-    Container_ToolsImpl* TargetFrame = new Container_ToolsImpl(NULL, this);
-    set_new_frame_and_panel(TargetFrame, TargetFrame->m_panel_tools);
+    Container_Util::SetNewframe(new Container_ToolsImpl(this));
 }
 
 void FrameImpl::pause_buttons(bool pause)
@@ -170,45 +219,6 @@ void FrameImpl::pause_buttons(bool pause)
     m_bitmap1->Enable(!pause);
     m_choice1->Show(false);
 }
-
-void FrameImpl::set_new_frame_and_panel(wxFrame* newframe, wxPanel* newpanel)
-{
-    // hide windowds on the m_container_panel
-    const wxWindowList nodes = m_container_panel->GetChildren();
-    for(wxWindowList::const_iterator& it = nodes.begin(); it != nodes.end(); ++it)
-    {
-        wxWindow* win = *it;
-        win->Show(false);
-    }
-
-    // set new frame
-    if(newframe != NULL)
-    {
-        if(CurrentFrame != NULL)
-        {
-            CurrentFrame->Close();
-            delete CurrentFrame;
-
-            const wxWindowList nodes = m_container_panel->GetChildren();
-            for(wxWindowList::const_iterator& it = nodes.begin(); it != nodes.end(); ++it)
-            {
-                wxWindow* win = *it;
-                win->Destroy();
-            }
-        }
-        CurrentFrame = newframe;
-    }
-
-
-    // set new panel
-    if(newpanel == NULL) return;
-    newpanel->Reparent(m_container_panel);
-    wxSizer* sizer = newpanel->GetContainingSizer();
-    sizer->Detach(newpanel);
-    m_container_panel->GetSizer()->Add(newpanel, 1, wxEXPAND | wxALL, 0);
-    m_container_panel->Layout();
-}
-
 
 void FrameImpl::deselect_all(const SimpleButton* except)
 {
@@ -230,93 +240,11 @@ void FrameImpl::deselect_all(const SimpleButton* except)
     };
 }
 
-
-//
-// Container_Common_ProgressImpl
-//
-Container_Common_ProgressImpl::Container_Common_ProgressImpl( wxWindow* parent, FrameImpl* _frameimpl )
-:
-Container_Common_Progress(parent), frameimpl(_frameimpl), ready_to_goback(false)
-{
-    this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( Container_Common_ProgressImpl::OnClose ) );
-
-    Bind(myEVT_PROGRESS, &Container_Common_ProgressImpl::OnProgress, this);
-    Bind(myEVT_MSG, &Container_Common_ProgressImpl::OnMsg, this);
-    Bind(myEVT_ERROR, &Container_Common_ProgressImpl::OnError, this);
-    Bind(wxEVT_THREAD, &Container_Common_ProgressImpl::OnThreadEvent, this);
-    m_prevnext->GetButtonNext()->Bind(myEVT_SimpleButtonClicked, &Container_Common_ProgressImpl::OnClickNextButton, this);
-}
-Container_Common_ProgressImpl::~Container_Common_ProgressImpl()
-{
-    this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( Container_Common_ProgressImpl::OnClose ) );
-}
-
-void Container_Common_ProgressImpl::OnClose( wxCloseEvent& event ) 
-{
-    m_prevnext->GetButtonNext()->Unbind(myEVT_SimpleButtonClicked, &Container_Common_ProgressImpl::OnClickNextButton, this);
-    Unbind(wxEVT_THREAD, &Container_Common_ProgressImpl::OnThreadEvent, this);
-    Unbind(myEVT_ERROR, &Container_Common_ProgressImpl::OnError, this);
-    Unbind(myEVT_MSG, &Container_Common_ProgressImpl::OnMsg, this);
-    Unbind(myEVT_PROGRESS, &Container_Common_ProgressImpl::OnProgress, this);
-    //Destroy();
-}
-
-
-void Container_Common_ProgressImpl::OnClickNextButton( wxCommandEvent& event )
-{
-}
-
-void Container_Common_ProgressImpl::OnProgress(ProgressEvent& event)
-{
-    progress->SetProgress(event.GetData());
-}
-
-void Container_Common_ProgressImpl::OnMsg(MsgEvent& event)
-{
-    m_textCtrl1->AppendText(wxDateTime::Now().Format(wxString("%H:%M:%S ")));
-    m_textCtrl1->AppendText(event.GetData());
-    m_textCtrl1->AppendText("\r\n");
-}
-
-void Container_Common_ProgressImpl::OnError(ErrorEvent& event)
-{
-    progress->SetError(true);
-    m_textCtrl1->AppendText(wxDateTime::Now().Format(wxString("%H:%M:%S ")));
-    m_textCtrl1->AppendText(wxString::Format("### ERROR ### %s\r\n", event.GetData()));
-}
-
-void Container_Common_ProgressImpl::OnThreadEvent(wxThreadEvent& event)
-{
-    ThreadState thread_state = event.GetPayload<ThreadState>();
-
-    if(thread_state == THREAD_STARTED)
-    {
-        frameimpl->pause_buttons(true);
-    }
-    else if(thread_state == THREAD_FINISHED)
-    {
-        frameimpl->pause_buttons(false);
-        m_prevnext->SetTextNext(ttt("FinishBtnText"));
-        ready_to_goback = true;
-    }
-    else if(thread_state == THREAD_TERMINATING)
-    {
-        m_prevnext->SetTextNext(ttt("CancelingBtnText"));
-    }
-    else if(thread_state == THREAD_TERMINATED)
-    {
-        frameimpl->pause_buttons(false);
-        m_prevnext->SetTextNext(ttt("CanceledBtnText"));
-        ready_to_goback = true;
-    }
-}
-
 //
 // Container_HomeImpl
 //
-Container_HomeImpl::Container_HomeImpl( wxWindow* parent )
-:
-Container_Home( parent )
+Container_HomeImpl::Container_HomeImpl( FrameImpl* _frameimpl)
+: Container_Home( nullptr ), ContainerCommon(_frameimpl)
 {
     Utility::SetIcon(m_bpButton1, IDB_PNG15);
     m_bpButton1->SetBackgroundColour(wxColour(255,255,255));
@@ -352,7 +280,7 @@ Container_Home( parent )
         GridData(wxColour(0xDC, 0xE6, 0xF1), wxString("  Clone"), wxColour(0x00, 0x00, 0x00), implemented),
         GridData(wxColour(0xDC, 0xE6, 0xF1), wxString("  VSS"), wxColour(0x00, 0x00, 0x00), implemented),
         GridData(wxColour(0xB8, 0xCC, 0xE4), wxString("Tools"), wxColour(0x00, 0x00, 0x00), wxEmptyString),
-        GridData(wxColour(0xDC, 0xE6, 0xF1), wxString("  Recovery boot media creation"), wxColour(0x00, 0x00, 0x00), not_implemented),
+        GridData(wxColour(0xDC, 0xE6, 0xF1), wxString("  Recovery boot media creation"), wxColour(0x00, 0x00, 0x00), implemented),
         GridData(wxColour(0xDC, 0xE6, 0xF1), wxString("  PXE boot support"), wxColour(0x00, 0x00, 0x00), not_implemented),
     };
     int count = sizeof(gd) / sizeof(GridData);
@@ -404,13 +332,14 @@ void Container_HomeImpl::OnPPButtonClick( wxCommandEvent& event )
 
 void Container_HomeImpl::OnPPLeftDown( wxMouseEvent& event )
 {
-    OnPPButtonClick(wxCommandEvent());
+    wxCommandEvent evt;
+    OnPPButtonClick(evt);
 }
 //
 // Container_RestoreImpl
 //
-Container_RestoreImpl::Container_RestoreImpl( wxWindow* parent, FrameImpl* _frameimpl )
-: Container_Restore( parent ), frameimpl(_frameimpl)
+Container_RestoreImpl::Container_RestoreImpl( FrameImpl* _frameimpl )
+: Container_Restore( nullptr ), ContainerCommon(_frameimpl)
 {
     m_prevnext->GetButtonPrev()->Bind(myEVT_SimpleButtonClicked, &Container_RestoreImpl::OnClickPrevButton, this);
     m_prevnext->GetButtonNext()->Bind(myEVT_SimpleButtonClicked, &Container_RestoreImpl::OnClickNextButton, this);
@@ -440,7 +369,7 @@ void Container_RestoreImpl::OnClickPrevButton( wxCommandEvent& event )
 
     wxSizer* sizer = win->GetContainingSizer();
     const wxWindowList nodes = sizer->GetContainingWindow()->GetChildren();
-    for(wxWindowList::const_iterator& it = nodes.begin(); it != nodes.end(); ++it)
+    for(wxWindowList::const_iterator it = nodes.begin(); it != nodes.end(); ++it)
     {
         wxWindow* w = *it;
         if(w != win && w!=m_prevnext && w!=m_staticText7 && w!=m_staticText8)
@@ -454,8 +383,7 @@ void Container_RestoreImpl::OnClickPrevButton( wxCommandEvent& event )
 
 void Container_RestoreImpl::OnClickNextButton( wxCommandEvent& event )
 {
-    Container_RestoreImpl_s01* TargetFrame = new Container_RestoreImpl_s01(NULL, frameimpl);
-    frameimpl->set_new_frame_and_panel(TargetFrame, TargetFrame->m_panel_restore);
+    Container_Util::SetNewframe(new Container_RestoreImpl_s01(frame_impl));
 }
 
 void Container_RestoreImpl::OnClickButton( wxCommandEvent& event )
@@ -471,7 +399,7 @@ void Container_RestoreImpl::OnClickButton( wxCommandEvent& event )
         return;
 
     wxString filepath = openFileDialog.GetPath();
-    frameimpl->Holder()->restore_data.filepath = filepath;
+    frame_impl->Holder()->restore_data.filepath = filepath;
     shared_ptr<VirtualDisk> vdisk = VirtualDiskFactory::Create(filepath);
     if(vdisk == NULL)
     {
@@ -499,15 +427,14 @@ void Container_RestoreImpl::OnClickButton( wxCommandEvent& event )
 //
 // Container_RestoreImpl_s01
 //
-Container_RestoreImpl_s01::Container_RestoreImpl_s01( wxWindow* parent, FrameImpl* _frameimpl )
-:
-Container_Restore_s01( parent ), frameimpl(_frameimpl)
+Container_RestoreImpl_s01::Container_RestoreImpl_s01( FrameImpl* _frameimpl )
+: Container_Restore_s01( nullptr ), ContainerCommon(_frameimpl)
 {
     wxSizer* sizer = m_panel171->GetSizer();
     DiskInfoPanel* panel = new DiskInfoPanel(sizer->GetContainingWindow(), this);
     panel->SetSelectionMode(DISK_PANEL_SELECTION_DISK);
 
-    shared_ptr<DiskInfo> di = frameimpl->GetDiskInfo();
+    shared_ptr<DiskInfo> di = frame_impl->GetDiskInfo();
     for(std::map<DWORD, shared_ptr<PhysicalDiskInfo>>::iterator itr=di->PhysicalDisks.begin(), itr_end = di->PhysicalDisks.end();
         itr != itr_end; ++itr)
     {
@@ -541,29 +468,27 @@ void Container_RestoreImpl_s01::OnSelectDisk(wxCommandEvent& event)
     SelectionData* sd = dynamic_cast<SelectionData*>(event.GetEventObject());
     if(sd == NULL) return;
 
-    frameimpl->Holder()->restore_data.disk_number = sd->disk_number;
-    frameimpl->Holder()->restore_data.mode = sd->mode;
-    frameimpl->Holder()->restore_data.partition_numbers = sd->partition_numbers;
+    frame_impl->Holder()->restore_data.disk_number = sd->disk_number;
+    frame_impl->Holder()->restore_data.mode = sd->mode;
+    frame_impl->Holder()->restore_data.partition_numbers = sd->partition_numbers;
 
     m_prevnext->SetEnabledNext(true);
 }
 
 void Container_RestoreImpl_s01::OnClickPrevButton( wxCommandEvent& event )
 {
-    Container_RestoreImpl* TargetFrame = new Container_RestoreImpl(NULL, frameimpl);
-    frameimpl->set_new_frame_and_panel(TargetFrame, TargetFrame->m_panel_restore);
+    Container_Util::SetNewframe(new Container_RestoreImpl(frame_impl));
 }
 void Container_RestoreImpl_s01::OnClickNextButton( wxCommandEvent& event )
 {
-    Container_RestoreImpl_s02* TargetFrame = new Container_RestoreImpl_s02(NULL, frameimpl);
-    frameimpl->set_new_frame_and_panel(TargetFrame, TargetFrame->m_panel_root);
+    Container_Util::SetNewframe(new Container_RestoreImpl_s02(frame_impl));
 }
 
 //
 // Container_RestoreImpl_s02
 //
-Container_RestoreImpl_s02::Container_RestoreImpl_s02( wxWindow* parent, FrameImpl* _frameimpl )
-: Container_Common_ProgressImpl( parent, _frameimpl )
+Container_RestoreImpl_s02::Container_RestoreImpl_s02( FrameImpl* _frameimpl )
+: Container_Common_Progress(nullptr), ProgressHandler(this), ContainerCommon(_frameimpl)
 {
     progress->ShowPercent(true);
     m_staticText81->SetLabel(ttt("Title_Restore_s02"));
@@ -571,13 +496,12 @@ Container_RestoreImpl_s02::Container_RestoreImpl_s02( wxWindow* parent, FrameImp
     m_prevnext->SetEnabledNext(true);
     m_textCtrl1->SetBackgroundColour(COLOR_BACKGROUND_TEXTCTRL);
 
-    restore = new RestoreWorker(this, &frameimpl->Holder()->restore_data, frameimpl->GetDiskInfo());
+    restore = new RestoreWorker(this, &frame_impl->Holder()->restore_data, frame_impl->GetDiskInfo());
     restore->Run();
 }
 
 void Container_RestoreImpl_s02::OnClose( wxCloseEvent& event ) 
 {
-    Container_Common_ProgressImpl::OnClose(event);
     delete restore;
     Destroy();
 }
@@ -585,7 +509,7 @@ void Container_RestoreImpl_s02::OnClose( wxCloseEvent& event )
 void Container_RestoreImpl_s02::OnClickNextButton( wxCommandEvent& event )
 {
     if(ready_to_goback)
-        frameimpl->OnClickHome(event);
+        frame_impl->OnClickHome(event);
     else
         restore->Terminate();
 }
@@ -594,8 +518,8 @@ void Container_RestoreImpl_s02::OnClickNextButton( wxCommandEvent& event )
 //
 // Container_BackupImpl
 //
-Container_BackupImpl::Container_BackupImpl( wxWindow* parent, FrameImpl* _frameimpl )
-: Container_Backup( parent ), frameimpl(_frameimpl)
+Container_BackupImpl::Container_BackupImpl( FrameImpl* _frameimpl )
+: Container_Backup( nullptr ), ContainerCommon(_frameimpl)
 {
     Utility::SetIcon(m_customControl61, IDB_PNG12, "Disk Backup");
     m_customControl61->SetDescription("test\r\ntest2\r\ntest3");
@@ -611,9 +535,8 @@ void Container_BackupImpl::OnClose( wxCloseEvent& event )
 //
 // Container_CloneImpl
 //
-Container_CloneImpl::Container_CloneImpl( wxWindow* parent, FrameImpl* _frameimpl )
-:
-Container_Clone( parent ), frameimpl(_frameimpl)
+Container_CloneImpl::Container_CloneImpl( FrameImpl* _frameimpl )
+: Container_Clone( nullptr ), ContainerCommon(_frameimpl)
 {
     m_staticText81->SetLabel(ttt("Title_Clone"));
 
@@ -638,30 +561,27 @@ void Container_CloneImpl::OnClose( wxCloseEvent& event )
 
 void Container_CloneImpl::OnClickFastButton( wxCommandEvent& event )
 {
-    frameimpl->Holder()->clone_data.exact_mode = false;
-    Container_CloneImpl_s01* TargetFrame = new Container_CloneImpl_s01(NULL, frameimpl);
-    frameimpl->set_new_frame_and_panel(TargetFrame, TargetFrame->m_panel_clone);
+    frame_impl->Holder()->clone_data.exact_mode = false;
+    Container_Util::SetNewframe(new Container_CloneImpl_s01(frame_impl));
 }
 
 void Container_CloneImpl::OnClickExactButton( wxCommandEvent& event )
 {
-    frameimpl->Holder()->clone_data.exact_mode = true;
-    Container_CloneImpl_s01* TargetFrame = new Container_CloneImpl_s01(NULL, frameimpl);
-    frameimpl->set_new_frame_and_panel(TargetFrame, TargetFrame->m_panel_clone);
+    frame_impl->Holder()->clone_data.exact_mode = true;
+    Container_Util::SetNewframe(new Container_CloneImpl_s01(frame_impl));
 }
 
 //
 // Container_CloneImpl_s01
 //
-Container_CloneImpl_s01::Container_CloneImpl_s01( wxWindow* parent, FrameImpl* _frameimpl )
-:
-Container_Clone_s01( parent ), frameimpl(_frameimpl)
+Container_CloneImpl_s01::Container_CloneImpl_s01( FrameImpl* _frameimpl )
+: Container_Clone_s01( nullptr ), ContainerCommon(_frameimpl)
 {
     wxSizer* sizer = m_panel171->GetSizer();
     DiskInfoPanel* panel = new DiskInfoPanel(sizer->GetContainingWindow(), this);
     panel->SetSelectionMode(DISK_PANEL_SELECTION_DISK);
 
-    shared_ptr<DiskInfo> di = frameimpl->GetDiskInfo();
+    shared_ptr<DiskInfo> di = frame_impl->GetDiskInfo();
     for(std::map<DWORD, shared_ptr<PhysicalDiskInfo>>::iterator itr=di->PhysicalDisks.begin(), itr_end = di->PhysicalDisks.end();
         itr != itr_end; ++itr)
     {
@@ -694,10 +614,10 @@ void Container_CloneImpl_s01::OnSelectDisk(wxCommandEvent& event)
     SelectionData* sd = dynamic_cast<SelectionData*>(event.GetEventObject());
     if(sd == NULL) return;
     {
-        frameimpl->Holder()->clone_data.disk_number_src = sd->disk_number;
-        frameimpl->Holder()->clone_data.mode = sd->mode;
-        frameimpl->Holder()->clone_data.partition_numbers_src = sd->partition_numbers;
-        frameimpl->Holder()->clone_data.vss = true;
+        frame_impl->Holder()->clone_data.disk_number_src = sd->disk_number;
+        frame_impl->Holder()->clone_data.mode = sd->mode;
+        frame_impl->Holder()->clone_data.partition_numbers_src = sd->partition_numbers;
+        frame_impl->Holder()->clone_data.vss = true;
     }
     m_prevnext->SetEnabledNext(true);
     m_staticText10->SetLabel(ttt("ClickNextToProceed"));
@@ -706,32 +626,29 @@ void Container_CloneImpl_s01::OnSelectDisk(wxCommandEvent& event)
 
 void Container_CloneImpl_s01::OnClickNextButton( wxCommandEvent& event )
 {
-    Container_CloneImpl_s02* TargetFrame = new Container_CloneImpl_s02(NULL, frameimpl);
-    frameimpl->set_new_frame_and_panel(TargetFrame, TargetFrame->m_panel_clone);
+    Container_Util::SetNewframe(new Container_CloneImpl_s02(frame_impl));
 }
 
 void Container_CloneImpl_s01::OnClickPrevButton( wxCommandEvent& event )
 {
-    Container_CloneImpl* TargetFrame = new Container_CloneImpl(NULL, frameimpl);
-    frameimpl->set_new_frame_and_panel(TargetFrame, TargetFrame->m_panel_clone);
+    Container_Util::SetNewframe(new Container_CloneImpl(frame_impl));
 }
 
 //
 // Container_CloneImpl_s02
 //
-Container_CloneImpl_s02::Container_CloneImpl_s02( wxWindow* parent, FrameImpl* _frameimpl )
-:
-Container_Clone_s02( parent ), frameimpl(_frameimpl)
+Container_CloneImpl_s02::Container_CloneImpl_s02( FrameImpl* _frameimpl )
+:Container_Clone_s02( nullptr ), ContainerCommon(_frameimpl)
 {
     wxSizer* sizer = m_panel171->GetSizer();
     DiskInfoPanel* panel = new DiskInfoPanel(sizer->GetContainingWindow(), this);
     panel->SetSelectionMode(DISK_PANEL_SELECTION_DISK);
 
-    shared_ptr<DiskInfo> di = frameimpl->GetDiskInfo();
+    shared_ptr<DiskInfo> di = frame_impl->GetDiskInfo();
     for(std::map<DWORD, shared_ptr<PhysicalDiskInfo>>::iterator itr=di->PhysicalDisks.begin(), itr_end = di->PhysicalDisks.end();
         itr != itr_end; ++itr)
     {
-        panel->AddDisk(itr->second, (itr->first == frameimpl->Holder()->clone_data.disk_number_src));
+        panel->AddDisk(itr->second, (itr->first == frame_impl->Holder()->clone_data.disk_number_src));
     }
 
     sizer->Insert(0, panel, 0, wxEXPAND |wxRIGHT|wxLEFT|wxTOP)->SetBorder(12);
@@ -760,10 +677,10 @@ void Container_CloneImpl_s02::OnSelectDisk(wxCommandEvent& event)
     SelectionData* sd = dynamic_cast<SelectionData*>(event.GetEventObject());
     if(sd == NULL) return;
     {
-        frameimpl->Holder()->clone_data.disk_number_dst = sd->disk_number;
-        frameimpl->Holder()->clone_data.partition_numbers_dst = sd->partition_numbers;
+        frame_impl->Holder()->clone_data.disk_number_dst = sd->disk_number;
+        frame_impl->Holder()->clone_data.partition_numbers_dst = sd->partition_numbers;
     }
-    if(frameimpl->Holder()->clone_data.disk_number_src == frameimpl->Holder()->clone_data.disk_number_dst)
+    if(frame_impl->Holder()->clone_data.disk_number_src == frame_impl->Holder()->clone_data.disk_number_dst)
         return;
 
     m_prevnext->SetEnabledNext(true);
@@ -772,22 +689,19 @@ void Container_CloneImpl_s02::OnSelectDisk(wxCommandEvent& event)
 
 void Container_CloneImpl_s02::OnClickNextButton( wxCommandEvent& event )
 {
-    Container_CloneImpl_s03* TargetFrame = new Container_CloneImpl_s03(NULL, frameimpl);
-    frameimpl->set_new_frame_and_panel(TargetFrame, TargetFrame->m_panel_root);
+    Container_Util::SetNewframe(new Container_CloneImpl_s03(frame_impl));
 }
 
 void Container_CloneImpl_s02::OnClickPrevButton( wxCommandEvent& event )
 {
-    Container_CloneImpl_s01* TargetFrame = new Container_CloneImpl_s01(NULL, frameimpl);
-    frameimpl->set_new_frame_and_panel(TargetFrame, TargetFrame->m_panel_clone);
+    Container_Util::SetNewframe(new Container_CloneImpl_s01(frame_impl));
 }
 
 //
 // Container_CloneImpl_s03
 //
-Container_CloneImpl_s03::Container_CloneImpl_s03( wxWindow* parent, FrameImpl* _frameimpl )
-:
-Container_Common_ProgressImpl( parent,_frameimpl )
+Container_CloneImpl_s03::Container_CloneImpl_s03( FrameImpl* _frameimpl )
+: Container_Common_Progress(nullptr), ProgressHandler(this), ContainerCommon(_frameimpl)
 {
     progress->ShowPercent(true);
     m_staticText81->SetLabel(ttt("Title_Clone_s03"));
@@ -795,13 +709,12 @@ Container_Common_ProgressImpl( parent,_frameimpl )
     m_prevnext->SetEnabledNext(true);
     m_textCtrl1->SetBackgroundColour(COLOR_BACKGROUND_TEXTCTRL);
 
-    clone = new CloneWorker(this, &frameimpl->Holder()->clone_data, frameimpl->GetDiskInfo());
+    clone = new CloneWorker(this, &frame_impl->Holder()->clone_data, frame_impl->GetDiskInfo());
     clone->Run();
 }
 
 void Container_CloneImpl_s03::OnClose( wxCloseEvent& event )
 {
-    Container_Common_ProgressImpl::OnClose(event);
     Destroy();
     delete clone;
 }
@@ -809,7 +722,7 @@ void Container_CloneImpl_s03::OnClose( wxCloseEvent& event )
 void Container_CloneImpl_s03::OnClickNextButton( wxCommandEvent& event )
 {
     if(ready_to_goback)
-        frameimpl->OnClickHome(event);
+        frame_impl->OnClickHome(event);
     else
         clone->Terminate();
 }
@@ -818,9 +731,8 @@ void Container_CloneImpl_s03::OnClickNextButton( wxCommandEvent& event )
 //
 // Container_ToolsImpl
 //
-Container_ToolsImpl::Container_ToolsImpl( wxWindow* parent, FrameImpl* _frameimpl )
-:
-Container_Tools( parent ), frameimpl(_frameimpl)
+Container_ToolsImpl::Container_ToolsImpl( FrameImpl* _frameimpl )
+: Container_Tools( nullptr ), ContainerCommon(_frameimpl)
 {
     m_staticText81->SetLabel(ttt("Title_Tools"));
     Utility::SetIcon(m_customControl61, IDB_PNG2, ttt("ToolsShell"));
@@ -828,12 +740,40 @@ Container_Tools( parent ), frameimpl(_frameimpl)
     m_customControl61->SetFrameMode(true);
     m_customControl61->SetNormalColour(COLOR_BUTTON_FACE_FRAME);
     m_customControl61->Bind( myEVT_SimpleButtonClicked, &Container_ToolsImpl::OnClickShellButton, this);
+
+    Utility::SetIcon(m_customControl71, IDB_PNG18, ttt("ToolsWinPE"));
+    m_customControl71->SetDescription(ttt("ToolsWinPEDesc"));
+    m_customControl71->SetFrameMode(true);
+    m_customControl71->SetNormalColour(COLOR_BUTTON_FACE_FRAME);
+    m_customControl71->Bind( myEVT_SimpleButtonClicked, &Container_ToolsImpl::OnClickCreateWinPEButton, this);
+
 }
 
 void Container_ToolsImpl::OnClose( wxCloseEvent& event )
 {
     m_customControl61->Unbind( myEVT_SimpleButtonClicked, &Container_ToolsImpl::OnClickShellButton, this);
     Destroy();
+}
+
+void Container_ToolsImpl::OnClickCreateWinPEButton( wxCommandEvent& event )
+{
+    wxFileName file = wxFileName(wxStandardPaths::Get().GetExecutablePath());
+    file.SetFullName(SystemEnvironment::RunAs32bit() ? "PEMaker32.exe" : "PEMaker64.exe");
+    if(!file.FileExists()) return;
+
+    STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+    ZeroMemory(&si, sizeof(si));
+    ZeroMemory(&pi, sizeof(pi));
+    si.cb = sizeof(si);
+
+    LPTSTR cmd = _tcsdup(file.GetFullPath().c_str());
+    CreateProcess(NULL, cmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+
+    free(cmd);
 }
 
 void Container_ToolsImpl::OnClickShellButton( wxCommandEvent& event )
@@ -849,4 +789,5 @@ void Container_ToolsImpl::OnClickShellButton( wxCommandEvent& event )
 
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
+    free(cmd);
 }
