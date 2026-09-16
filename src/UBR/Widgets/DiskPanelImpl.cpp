@@ -44,10 +44,11 @@ DiskPanelImpl::DiskPanelImpl( wxWindow* _parent, wxEvtHandler* eh, shared_ptr<Ph
         PARTITION_INFORMATION_EX partition_info = *itr;
         if(partition_info.PartitionStyle == PARTITION_STYLE_MBR && partition_info.Mbr.PartitionType == 0x00)
             continue;
-        double ratio = (double) partition_info.PartitionLength.QuadPart / (double) physical_disk->DiskSize;
+        double ratio = physical_disk->DiskSize == 0 ? 1./(double)physical_disk->Partitions.size()
+                                                    : (double) partition_info.PartitionLength.QuadPart / physical_disk->DiskSize;
         ratios.push_back(ratio);
         ratio_sum += ratio;
-        child_panels.push_back(std::pair<bool, wxPanel*>(false, AddDrivePanel(&(*itr), PhysicalDiskUtil::FindVolumeInfo(physical_disk, (*itr).PartitionNumber))));
+        child_panels.push_back(std::pair<bool, wxPanel*>(false, AddDrivePanel(&(*itr), PhysicalDiskUtil::FindVolumeInfo(physical_disk, (*itr).PartitionNumber), ratio)));
     }
     loose_mode = (ratio_sum < 0.8);
 
@@ -88,7 +89,7 @@ wxPanel* DiskPanelImpl::AddTitlePanel()
     wxString PartitionStyle = (physical_disk->PartitionStyle == PARTITION_STYLE_MBR) ? "MBR":
         (physical_disk->PartitionStyle == PARTITION_STYLE_GPT) ? "GPT":
         (physical_disk->PartitionStyle == PARTITION_STYLE_RAW) ? "RAW":"Unknown";
-    wxString disk_size = Unit::HumanReadable(physical_disk->DiskSize);
+    wxString disk_size = (physical_disk->DiskSize==0) ? wxString("") : Unit::HumanReadable(physical_disk->DiskSize);
 
 	m_staticText11 = new EventPropagate<wxStaticText>(m_title_panel, true);// m_title_panel, wxID_ANY, disk_number, wxDefaultPosition, wxDefaultSize, 0 );
     m_staticText11->Create(m_title_panel, wxID_ANY, disk_number, wxDefaultPosition, wxDefaultSize, 0);
@@ -133,7 +134,7 @@ wxString DiskPanelImpl::guid2string(GUID guid)
 }
 
 
-wxPanel* DiskPanelImpl::AddDrivePanel(const PARTITION_INFORMATION_EX* partition_info, const VolumeInfo& volume_info)
+wxPanel* DiskPanelImpl::AddDrivePanel(const PARTITION_INFORMATION_EX* partition_info, const VolumeInfo& volume_info, double ratio)
 {
     wxPanel* m_panel1;
     ProgressPanel* m_customControl1;
@@ -199,7 +200,6 @@ wxPanel* DiskPanelImpl::AddDrivePanel(const PARTITION_INFORMATION_EX* partition_
 	m_panel1->Layout();
 	bSizer3->Fit( m_panel1 );
 
-    double ratio = (double) partition_info->PartitionLength.QuadPart / (double) physical_disk->DiskSize;
     bSizer->Add( m_panel1, 100*ratio, wxEXPAND|wxBOTTOM|wxRIGHT|wxTOP, 3 );
 
     wxString used_space = wxEmptyString;

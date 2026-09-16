@@ -21,6 +21,7 @@
 #include <wx/wx.h>
 #include <vector>
 #include "Widgets/DiskPanelImpl.h"
+#include "FileSystem/VDisk.h"
 
 class RestoreData
 {
@@ -49,7 +50,7 @@ public:
         disk_number_dst = 0;
         partition_numbers_src.clear();
         partition_numbers_dst.clear();
-        vss = false;
+        vss = true;
         exact_mode = false;
     }
 public:
@@ -62,11 +63,37 @@ public:
     bool exact_mode;
 };
 
+class BackupData
+{
+public:
+    void Clear()
+    {
+        filepath.Empty();
+        mode = DISK_PANEL_SELECTION_NOSELECTION;
+        disk_number = 0;
+        partition_numbers_src.clear();
+        vss = true;
+        compress = true;
+        exact_mode = false;
+        filetype = FILE_TYPE_VHDX;
+    }
+public:
+    wxString filepath;
+    DiskPanelSelectionMode mode;
+    int disk_number;
+    std::vector<int> partition_numbers_src;
+    bool vss;
+    bool compress;
+    bool exact_mode;
+    FileType filetype;
+};
+
 class DataHolder
 {
 public:
     RestoreData restore_data;
     CloneData clone_data;
+    BackupData backup_data;
 };
 
 #endif

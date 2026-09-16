@@ -69,7 +69,7 @@ protected:
     wxEvtHandler* event_handler;
     shared_ptr<PhysicalDiskInfo> physical_disk;
     wxPanel* AddTitlePanel();
-    wxPanel* AddDrivePanel(const PARTITION_INFORMATION_EX* partition_info, const VolumeInfo& volume_info);
+    wxPanel* AddDrivePanel(const PARTITION_INFORMATION_EX* partition_info, const VolumeInfo& volume_info, double ratio);
     std::vector<double> ratios;
     std::vector<std::pair<bool, wxPanel*>> child_panels;
     bool loose_mode;

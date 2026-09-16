@@ -7,7 +7,10 @@ UBR is a HDD backup, restore and clone utility.
 * Designed for Windows 7/10/11
 * Run on Windows PE/SE
 * Support for MBR/GPT
-* Restore from VHD, VHDX and RAW(DD) images
+* Backup to VHD, VHDX and RAW(DD) images
+* Backup to compressed(lz4) images
+* Restore from VHD, VHDX and RAW images
+* Restore from compressed(lz4) images
 * Restore and clone to a smaller HDD
 * Live clone by using VSS snapshots
 * Improve performance by skipping non used area during copying(FAT12/16/32, NTFS)
@@ -31,11 +34,11 @@ See documentation at the [Wiki](https://github.com/UozaLab/UBR/wiki)
 
 This project is in development phase.
 
-Features like backup or partition restore are not implemented yet.
+Features like partition backup and restore are not implemented yet.
 
 
 ## Compiling
 
 * msys2(mingw32/mingw64)
 * wxWidgets-3.2.10
-
+* LZ4 v1.10.0

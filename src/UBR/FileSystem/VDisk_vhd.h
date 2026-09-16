@@ -83,7 +83,12 @@ class VHD : public VHDCommon
     VHD_FOOTER footer;
     VHD_DYNAMIC_DISK_HEADER header;
     UINT32* bat;
+    unsigned int bat_count;
     virtual bool read_footer_header();
+    virtual bool write_footer();
+    virtual bool write_header();
+    void create_new_disk(UINT32 blocksize, UINT64 virtual_disksize);
+    UINT32 checksum(UINT8*buf, int size);
 
     virtual ULONGLONG GetDiskSizeImpl();
     virtual DWORD GetSectorSizeImpl();
@@ -91,8 +96,10 @@ class VHD : public VHDCommon
     virtual DWORD GetTableEntriesCountImpl();
     virtual UINT32 GetDiskTypeImpl();
     virtual BOOL GetBlockDataImpl(UINT8* blockdata, DWORD blockindex, DWORD* ByteRead, bool* can_skip);
+    virtual BOOL SetBlockDataImpl(const UINT8* blockdata, DWORD blockindex, DWORD* ByteWrite);
 
   public:
+    VHD(const TCHAR* _filename, UINT32 blocksize, UINT64 virtual_disksize);
     VHD(const TCHAR* _filename);
     ~VHD();
     virtual tstring GetFileFormat()

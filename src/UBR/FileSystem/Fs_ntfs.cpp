@@ -409,7 +409,7 @@ ParseResult NTFS::count_used_clusters(ULONGLONG count_start_sector, ULONGLONG se
                     else
                     {
                         zero_series.AddressTo = cluster_range_index + NTFSUtility::NumberOfTrailingZero(sector_buffer[i]) - 1;
-                        if(zero_series.AddressTo - zero_series.AddressFrom > 100)
+                        if(zero_series.AddressTo - zero_series.AddressFrom > 1000)
                         {
                             pr.EmptyClusterRanges.push_back(zero_series);
                         }

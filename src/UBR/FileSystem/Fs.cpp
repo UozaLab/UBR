@@ -258,6 +258,25 @@ tstring FileSystem::FSTypeToString(FS_TYPE fs_type)
     return _T("Unknown");
 }
 
+FS_TYPE FileSystem::PartitionTypeToFSType(UINT8 partition_type)
+{
+    switch(partition_type)
+    {
+      case 0x01:
+        return FS_TYPE_FAT12;
+      case 0x04:
+      case 0x06:
+      case 0x0E:
+        return FS_TYPE_FAT16;
+      case 0x0B:
+      case 0x0C:
+        return FS_TYPE_FAT32;
+      case 0x07:
+        return FS_TYPE_NTFS;
+    }
+    return FS_TYPE_UNKNOWN;
+}
+
 tstring FileSystem::PartitionTypeToString(UINT8 partition_type)
 {
     switch(partition_type)

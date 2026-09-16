@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2026, UozaLab
+ * Copyright (c) 2024-2026, Uoza Lab
  *
  * This program is free software: you can redistribute it and/or modify 
  * it under the terms of the GNU General Public License as published by 
@@ -15,29 +15,21 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef __FS__H__
-#define __FS__H__
+#ifndef __PrivilegeControl_H___
+#define __PrivilegeControl_H___
 
 #include <windows.h>
-#include "smart_ptr.h"
-#include "tstring.h"
-#include "VDiskStream.h"
-#include "FsInfo.h"
-#include "MbrGpt.h"
+#include <tchar.h>
 
-class FileSystem
+class PrivilegeControl
 {
-protected:
-    shared_ptr<VirtualDiskStream> stream;
-    VOLUME_TYPE_INFO create_volume_type_info(UINT64 partition_start_sector);
-
+private:
+    HANDLE process_token;
 public:
-    static tstring PartitionTypeToString(UINT8 partition_type);
-    static FS_TYPE PartitionTypeToFSType(UINT8 partition_type);
-    static tstring FSTypeToString(FS_TYPE fs_type);
-    FileSystem(shared_ptr<VirtualDiskStream> _stream);
-    FSInfo GetFSInfo(UINT64 partition_start_sector);
-    shared_ptr<DiskUpdaterCollection> GetShrinkedSectorData(shared_ptr<MBRGPT> mbrgpt);
+    PrivilegeControl();
+    ~PrivilegeControl();
+    bool IsValid(){return process_token != NULL;}
+    BOOL SetPrivilege(LPCTSTR lpszPrivilege, BOOL bEnablePrivilege);
 };
 
 #endif

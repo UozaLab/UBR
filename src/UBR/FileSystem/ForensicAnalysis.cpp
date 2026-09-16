@@ -77,8 +77,14 @@ shared_ptr<PhysicalDiskInfo> ForensicAnalysis::CreateDiskInfo(shared_ptr<Virtual
             if(IsEqualGUID(mbrgpt.MbrGptInfo.GPE[i].PartitionType, MicrosoftBasicData) ||
 				IsEqualGUID(mbrgpt.MbrGptInfo.GPE[i].PartitionType, EFISystem))
             {
-                FileSystem fs(stream);
-                vi.FilesystemInfo = fs.GetFSInfo(mbrgpt.MbrGptInfo.GPE[i].FirstLBA);
+                if(!vdisk->GetSlow())
+                {
+                    FileSystem fs(stream);
+                    vi.FilesystemInfo = fs.GetFSInfo(mbrgpt.MbrGptInfo.GPE[i].FirstLBA);
+                }
+                else
+                {
+                }
 
             }
             physical_disk->Volumes.push_back(vi);
@@ -126,8 +132,16 @@ shared_ptr<PhysicalDiskInfo> ForensicAnalysis::CreateDiskInfo(shared_ptr<Virtual
                mbrgpt.MbrGptInfo.PE[i].PartitionType == 0x0E || // FAT16
                mbrgpt.MbrGptInfo.PE[i].PartitionType == 0x1E)
             {
-                FileSystem fs(stream);
-                vi.FilesystemInfo = fs.GetFSInfo(mbrgpt.MbrGptInfo.PE[i].LBAOfFirstAbsoluteSector);
+                if(!vdisk->GetSlow())
+                {
+                    FileSystem fs(stream);
+                    vi.FilesystemInfo = fs.GetFSInfo(mbrgpt.MbrGptInfo.PE[i].LBAOfFirstAbsoluteSector);
+                }
+                else
+                {
+                    vi.FilesystemInfo.TypeInfo.FileSystemType = FileSystem::PartitionTypeToFSType(mbrgpt.MbrGptInfo.PE[i].PartitionType);
+                    vi.FilesystemInfo.TypeInfo.FileSystemName = FileSystem::PartitionTypeToString(mbrgpt.MbrGptInfo.PE[i].PartitionType);
+                }
             }
             else
             {

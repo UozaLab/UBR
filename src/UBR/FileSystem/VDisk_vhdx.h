@@ -23,7 +23,6 @@
 #include "VDisk_vhd_common.h"
 #include "Crc32.h"
 
-
 #define VHDX_PAYLOAD_BLOCK_NOT_PRESENT       0
 #define VHDX_PAYLOAD_BLOCK_UNDEFINED         1
 #define VHDX_PAYLOAD_BLOCK_ZERO              2
@@ -129,12 +128,14 @@ struct VHDX_PHYSICAL_SECTOR_SIZE
 #pragma pack()
 
 
+
 class VHDX : public VHDCommon
 {
 protected:
     CRC32 crc32;
+    UINT64 bat_size;
 
-protected:    
+protected:
     VHDX_FILE_TYPE_IDENTIFIER file_type_identifier;
     VHDX_HEADER header1;
     VHDX_HEADER header2;
@@ -150,6 +151,9 @@ protected:
     VHDX_PHYSICAL_SECTOR_SIZE metadata_physical_sector_size;
 
     virtual bool read_footer_header();
+    bool write_header();
+    bool write_footer(){ return true; }
+    void create_new_disk(UINT32 blocksize, UINT64 virtual_disksize, UINT32 logical_sectorsize, UINT32 physical_sectorsize);
     bool checksum(UINT8 *buf, int len);
 
     virtual ULONGLONG GetDiskSizeImpl();
@@ -158,15 +162,16 @@ protected:
     virtual DWORD GetTableEntriesCountImpl();
     virtual UINT32 GetDiskTypeImpl();
     virtual BOOL GetBlockDataImpl(UINT8* blockdata, DWORD blockindex, DWORD* ByteRead, bool* can_skip);
+    virtual BOOL SetBlockDataImpl(const UINT8* blockdata, DWORD blockindex, DWORD* ByteWrite);
 
 public:
+    VHDX(const TCHAR* _filename, UINT32 blocksize, UINT64 virtual_disksize, UINT32 logical_sectorsize, UINT32 physical_sectorsize);
     VHDX(const TCHAR* _filename);
     ~VHDX();
     virtual tstring GetFileFormat()
     {
         return _T("VHDX");
     }
-
 };
 
 #endif

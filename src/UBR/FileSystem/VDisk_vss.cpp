@@ -41,7 +41,7 @@ PartitionSequence PartitionSequenceUtility::CreateInvalidSequence(DWORD bytes_pe
 }
 
 
-PartitionSequence PartitionSequenceUtility::GetPartitionSequence(const std::vector<PartitionSequence>& part_seqs, UINT64 address_sector)
+PartitionSequence PartitionSequenceUtility::FindPartitionSequence(const std::vector<PartitionSequence>& part_seqs, UINT64 address_sector)
 {
     for(std::vector<PartitionSequence>::const_iterator itr = part_seqs.begin(), itr_end = part_seqs.end(); itr != itr_end; itr++)
     {
@@ -56,9 +56,24 @@ PartitionSequence PartitionSequenceUtility::GetPartitionSequence(const std::vect
     return seq;
 }
 
+PartitionSequence PartitionSequenceUtility::GetPartitionSequence(const std::vector<PartitionSequence>& part_seqs, DWORD partition_number)
+{
+    for(std::vector<PartitionSequence>::const_iterator itr = part_seqs.begin(), itr_end = part_seqs.end(); itr != itr_end; itr++)
+    {
+        if(itr->PartitionNumber == partition_number)
+        {
+            return *itr;
+        }
+    }
+    PartitionSequence seq;
+    seq.Index = -1;
+    seq.invalid = true;
+    return seq;
+}
 
-PhysicalVSS::PhysicalVSS(int _disk_number, shared_ptr<DiskInfo> _di)
-     : Physical(_disk_number), di(_di), handle_current(NULL), partition_current(-1)
+
+PhysicalVSS::PhysicalVSS(int _disk_number, shared_ptr<DiskInfo> _di, UINT32 _blocksize, bool create_vss)
+     : Physical(_disk_number), di(_di), handle_current(NULL), partition_current(-1), blocksize(_blocksize)
 {
     shared_ptr<PhysicalDiskInfo> pdi = di->PhysicalDisks[disk_number];
     std::vector<tstring> volume_names;
@@ -68,7 +83,7 @@ PhysicalVSS::PhysicalVSS(int _disk_number, shared_ptr<DiskInfo> _di)
         volume_names.push_back(itr->VolumeGUIDPath);
     }
     
-    vss_created = (SystemEnvironment::RunOnPE()) ? false : vss.CreateSnapshot(volume_names);
+    vss_created = (create_vss == false || SystemEnvironment::RunOnPE()) ? false : vss.CreateSnapshot(volume_names);
 
     std::map<int, PartitionSequence> seq_map;
     std::vector<int> seq_map_keys;
@@ -151,6 +166,11 @@ PhysicalVSS::~PhysicalVSS()
     }
 }
 
+DWORD PhysicalVSS::GetBlockSize()
+{
+    return blocksize;
+}
+
 bool PhysicalVSS::open_partition(const PartitionSequence& seq)
 {
     if(!seq.invalid && seq.PartitionNumber == partition_current) return true;
@@ -195,6 +215,32 @@ bool PhysicalVSS::open_partition(const PartitionSequence& seq)
 
 }
 
+bool PhysicalVSS::CanSkip(DWORD blockindex)
+{
+    guard();
+
+    DWORD blockcount = GetTableEntriesCount();
+    if(blockindex < 0 || blockindex >= blockcount) return FALSE;
+
+    DWORD block_size = GetBlockSize();
+    UINT64 start_byte = ((UINT64)block_size) * blockindex;
+    UINT64 start_sector = start_byte / ((UINT64) GetSectorSize());
+
+    UINT64 end_byte = ((UINT64)block_size) * (blockindex + 1);
+    UINT64 end_sector = end_byte / ((UINT64) GetSectorSize());
+    end_sector--;
+    end_byte--;
+
+    PartitionSequence part_seq_start = PartitionSequenceUtility::FindPartitionSequence(part_seqs, start_sector);
+    PartitionSequence part_seq_end = PartitionSequenceUtility::FindPartitionSequence(part_seqs, end_sector);
+
+    if(part_seq_start.Index == part_seq_end.Index && part_seq_start.invalid)
+      return FALSE;
+    if(part_seq_start.Index == part_seq_end.Index)
+      return skip(part_seq_start, start_sector, end_sector);
+    return FALSE;
+}
+
 BOOL PhysicalVSS::GetBlockData(unsigned char* blockdata, DWORD blockindex, DWORD* ByteRead, bool* can_skip)
 {
     guard();
@@ -202,17 +248,17 @@ BOOL PhysicalVSS::GetBlockData(unsigned char* blockdata, DWORD blockindex, DWORD
     DWORD blockcount = GetTableEntriesCount();
     if(blockindex < 0 || blockindex >= blockcount) return FALSE;
 
-    DWORD blocksize = GetBlockSize();
-    UINT64 start_byte = ((UINT64)blocksize) * blockindex;
+    DWORD block_size = GetBlockSize();
+    UINT64 start_byte = ((UINT64)block_size) * blockindex;
     UINT64 start_sector = start_byte / ((UINT64) GetSectorSize());
 
-    UINT64 end_byte = ((UINT64)blocksize) * (blockindex + 1);
+    UINT64 end_byte = ((UINT64)block_size) * (blockindex + 1);
     UINT64 end_sector = end_byte / ((UINT64) GetSectorSize());
     end_sector--;
     end_byte--;
 
-    PartitionSequence part_seq_start = PartitionSequenceUtility::GetPartitionSequence(part_seqs, start_sector);
-    PartitionSequence part_seq_end = PartitionSequenceUtility::GetPartitionSequence(part_seqs, end_sector);
+    PartitionSequence part_seq_start = PartitionSequenceUtility::FindPartitionSequence(part_seqs, start_sector);
+    PartitionSequence part_seq_end = PartitionSequenceUtility::FindPartitionSequence(part_seqs, end_sector);
 
     if(part_seq_start.Index == part_seq_end.Index && part_seq_start.invalid)
         return Physical::GetBlockData(blockdata, blockindex, ByteRead, can_skip);
@@ -222,8 +268,8 @@ BOOL PhysicalVSS::GetBlockData(unsigned char* blockdata, DWORD blockindex, DWORD
         *can_skip = skip(part_seq_start, start_sector, end_sector);
         if(*can_skip)
         {
-            ZeroMemory(blockdata, blocksize);
-            *ByteRead = blocksize;
+            ZeroMemory(blockdata, block_size);
+            *ByteRead = block_size;
             return TRUE;
         }
 
@@ -232,11 +278,16 @@ BOOL PhysicalVSS::GetBlockData(unsigned char* blockdata, DWORD blockindex, DWORD
 
         LARGE_INTEGER filepointer;
         filepointer.QuadPart = (seq.PartitionNumber == 0) ? start_byte : start_byte - seq.PartitionLengthSum;
-        SetFilePointerEx(handle_current, filepointer, NULL, FILE_BEGIN);
-        DWORD byte_read;
-        if(!ReadFile(handle_current, blockdata, blocksize, &byte_read, 0))
+        if(!SetFilePointerEx(handle_current, filepointer, NULL, FILE_BEGIN))
+        {
             return FALSE;
-        if(byte_read != blocksize) return FALSE;
+        }
+        DWORD byte_read;
+        if(!ReadFile(handle_current, blockdata, block_size, &byte_read, 0))
+        {
+            return FALSE;
+        }
+        if(byte_read != block_size) return FALSE;
         *ByteRead = byte_read;
         return TRUE;
     }
@@ -328,4 +379,75 @@ bool PhysicalVSS::skip(const PartitionSequence& seq, UINT64 start_sector, UINT64
         return true;
     }
     return false;
+}
+
+DWORD PhysicalVSS::count_blocks(UINT64 address_from, UINT64 address_to, INT32& BlockIndexMax)
+{
+    DWORD block_size = GetBlockSize();
+    INT64 index_from = address_from / block_size;
+    INT64 index_to = address_to / block_size;
+
+    if(BlockIndexMax >= index_from)
+        index_from = BlockIndexMax + 1;
+    if(BlockIndexMax >= index_to)
+        return 0;
+    if(index_from > index_to)
+        return 0;
+
+    UINT64 count = index_to - index_from + 1;
+    BlockIndexMax = index_to;
+    return (DWORD) count;
+}
+
+DWORD PhysicalVSS::GetActualBlockCount()
+{
+    DWORD block_size = GetBlockSize();
+    DWORD block_sum = 0;
+    bool first = true;
+    UINT64 current_address = 0;
+    INT32 BlockIndexMax = -1;
+
+    if(empty_cluster_ranges.cluster_ranges.empty())
+      return GetTableEntriesCount();
+
+    for(std::map<int, std::vector<CLUSTER_RANGE>>::iterator itr = empty_cluster_ranges.cluster_ranges.begin(),
+        itr_end = empty_cluster_ranges.cluster_ranges.end(); itr != itr_end; itr++)
+    {
+        int partition_number = itr->first;
+        UINT8 sectors_per_clusters = empty_cluster_ranges.SectorsPerClusters[partition_number];
+        PartitionSequence ps = PartitionSequenceUtility::GetPartitionSequence(part_seqs, partition_number);
+
+        std::vector<CLUSTER_RANGE> vcr = itr->second;
+
+        for(std::vector<CLUSTER_RANGE>::iterator itr_c = vcr.begin(),
+            itr_c_end = vcr.end(); itr_c != itr_c_end; itr_c++)
+        {
+            CLUSTER_RANGE cr = *itr_c;
+
+            UINT64 address_from = cr.AddressFrom;
+            address_from *= sectors_per_clusters;
+            address_from += ps.StartSector;
+            address_from *= GetSectorSize();
+
+            UINT64 address_to = cr.AddressTo + 1;
+            address_to *= sectors_per_clusters;
+            address_to += ps.StartSector;
+            address_to *= GetSectorSize();
+
+            if(first)
+            {
+                first = false;
+                if(address_from != 0)
+                    block_sum += count_blocks(0, address_from-1, BlockIndexMax);
+            }
+            else
+            {
+                block_sum += count_blocks(current_address, address_from-1, BlockIndexMax);
+            }
+            current_address = address_to;
+        }
+    }
+    block_sum += count_blocks(current_address, GetDiskSize()-1, BlockIndexMax);
+
+    return block_sum;
 }

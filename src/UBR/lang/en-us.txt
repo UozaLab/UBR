@@ -18,6 +18,10 @@ Title_Restore_1 = Restore - Check the contents of the selected image file
 Title_Restore_s01 = Restore - Select a destination disk
 Title_Restore_s02 = Restore - Progress
 Title_Tools = Tools
+Title_Backup = Backup - Select the disk to backup
+Title_Backup_s01 = Backup - Select the file type of image file
+Title_Backup_s02 = Backup - Select the backup options
+Title_Backup_s03 = Backup - Progress
 
 PrevBtnText = Prev
 NextBtnText = Next
@@ -39,9 +43,29 @@ FastCloneBtnDesc = Fast clone just copies the data in use and skips empty area.\
 ExactCloneBtnTitle = Exact Clone
 ExactCloneBtnDesc = Exact clone clones all the data on HDD. It takes a long time to clone.\nThis option is for advanced user.\nYou cannot clone to a smaller HDD.
 
+BackupVHDXBtnDesc = VHDX is a file format representing a Virtual Hard Disk.\nNormally choose this option.
+BackupVHDBtnDesc = VHD is also a virtual hard disk format.\nThis format has a limitation of under 2TB for the size.
+BackupRAWBtnDesc = A RAW file contains uncompressed disk image.\nThis option is for advanced user.
+SaveImageFile = Save as
+BackupPath = Destination path : 
+BackupPathWarn = file will be overwritten!!
+StartBackupBtnText = Start Backup
+BackupVSSBtn = VSS
+BackupCompressBtn = Compress
+BackupFastBtn = Fast Backup
+BackupVSSBtnDesc = Volume Shadow Copy Service (VSS) ensures that\nall files are backed up in a consistent state even when they are in use.
+BackupCompressBtnDesc = Compress is a mode that performs compression while creating a backup.\n'.lz4' will be added to the end of the file name.
+BackupFastBtnDesc = Fast Backup improves performance by skipping non used area during copying.
+
 ToolsShell = Command Prompt
 ToolsShellDesc = Performs text-based (command-line) functions.
 ToolsWinPE = Make Bootable Media
 ToolsWinPEDesc = Make a bootable media to run a WinPE
 
 Description = "UBR is a HDD backup, restore and clone utility.\nIt is is free for personal and commercial use."
+
+FinishMsg = The process completed successfully
+FinishMsg2 = Click Finished to go back Home
+CautionMsg = Please note that a disk ID collision happens when storage drives have same ID.
+CautionMsg2 = If the disk does not come online, try removing the other disk.
+

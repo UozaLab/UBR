@@ -25,6 +25,7 @@
 #include "DataHolder.h"
 #include "Worker/Restore.h"
 #include "Worker/Clone.h"
+#include "Worker/Backup.h"
 #include "Worker/Events.h"
 #include "FileSystem/PhysicalDiskInfo.h"
 #include "FileSystem/DiskInfo.h"
@@ -38,10 +39,6 @@ protected:
     bool ready_to_gonext;
     bool error;
     wxEvtHandler* event_handler;
-    void write_msg(wxTextCtrl* ctrl, const wxString& str);
-    void write_msg(wxTextCtrl* ctrl, const wxString& str, wxColor color);
-    void write_msg(wxTextCtrl* ctrl, const MsgEvent& msg);
-
 public:
     ProgressHandler(wxEvtHandler* _event_handler);
     virtual ~ProgressHandler();
@@ -60,12 +57,13 @@ class FrameImpl : public BaseFrame
         shared_ptr<DiskInfo> di;
         void init_language();
         void deselect_all(const SimpleButton* except = NULL);
-        void pause_buttons(bool pause);
 
   public:
 		FrameImpl();
         DataHolder* Holder() { return  &dataholder; }
         shared_ptr<DiskInfo> GetDiskInfo() { return di; }
+
+        void PauseButtons(bool pause);
 
         void OnClickHome( wxCommandEvent& event );
         void OnClickBackup( wxCommandEvent& event );
@@ -76,6 +74,24 @@ class FrameImpl : public BaseFrame
 		void OnClose( wxCloseEvent& event );
         void OnChoice( wxCommandEvent& event );
         void OnLeftDown( wxMouseEvent& event );
+
+};
+
+
+class Container_Common_ProgressImpl : public Container_Common_Progress, public ProgressHandler
+{
+  protected:
+    FrameImpl* frameimpl_p;
+    void write_msg(const wxString& str);
+    void write_msg(const wxString& str, wxColor color);
+    void write_msg(const MsgEvent& msg);
+
+  public:
+    Container_Common_ProgressImpl(FrameImpl* _frameimpl);
+    virtual void OnProgress(ProgressEvent& event);
+    virtual void OnMsg(MsgEvent& event);
+    virtual void OnError(ErrorEvent& event);
+    virtual void OnThreadEvent(wxThreadEvent& event);
 
 };
 
@@ -110,7 +126,7 @@ public:
         void OnClose( wxCloseEvent& event );
 };
 
-class Container_RestoreImpl_s02 : public Container_Common_Progress, ProgressHandler, ContainerCommon
+class Container_RestoreImpl_s02 : public Container_Common_ProgressImpl, ContainerCommon
 {
 protected:
     RestoreWorker* restore;
@@ -125,9 +141,49 @@ public:
 class Container_BackupImpl : public Container_Backup, ContainerCommon
 {
 public:
-		Container_BackupImpl( FrameImpl* _frameimpl );
+    Container_BackupImpl( FrameImpl* _frameimpl );
+    void OnClickNextButton( wxCommandEvent& event );
+    void OnSelectDisk(wxCommandEvent& event);
+    virtual void OnClose( wxCloseEvent& event );
+};
 
-        virtual void OnClose( wxCloseEvent& event );
+class Container_BackupImpl_s01 : public Container_Backup_s01, ContainerCommon
+{
+protected:
+    bool show_file_dialog(FileType filetype);
+    void deselect_all(const SimpleButton* except = NULL);
+public:
+	Container_BackupImpl_s01( FrameImpl* _frameimpl );
+    void OnClickPrevButton( wxCommandEvent& event );
+    void OnClickVHDXButton( wxCommandEvent& event );
+    void OnClickVHDButton( wxCommandEvent& event );
+    void OnClickRAWButton( wxCommandEvent& event );
+    void OnClose( wxCloseEvent& event );
+};
+
+class Container_BackupImpl_s02 : public Container_Backup_s02, ContainerCommon
+{
+protected:
+    void set_filepath_text();
+public:
+	Container_BackupImpl_s02( FrameImpl* _frameimpl );
+    void OnClickPrevButton( wxCommandEvent& event );
+    void OnClickNextButton( wxCommandEvent& event );
+    void OnClickVSSButton( wxCommandEvent& event );
+    void OnClickCompressButton( wxCommandEvent& event );
+    void OnClickExactButton( wxCommandEvent& event );
+    void OnClose( wxCloseEvent& event );
+};
+
+class Container_BackupImpl_s03 : public Container_Common_ProgressImpl, ContainerCommon
+{
+protected:
+    BackupWorker* backup;
+public:
+    Container_BackupImpl_s03( FrameImpl* _frameimpl );
+    void OnClickNextButton( wxCommandEvent& event );
+    void OnClose( wxCloseEvent& event );
+
 };
 
 class Container_HomeImpl : public Container_Home, ContainerCommon
@@ -169,7 +225,7 @@ public:
     void OnClose( wxCloseEvent& event );
 };
 
-class Container_CloneImpl_s03 : public Container_Common_Progress, ProgressHandler, ContainerCommon
+class Container_CloneImpl_s03 : public Container_Common_ProgressImpl, ContainerCommon
 {
 protected:
     CloneWorker* clone;
@@ -205,48 +261,7 @@ class Container_Util
         CurrentFrame = nullptr;
     }
 
-    static void SetNewframe(wxFrame* newframe)
-    {
-        if(BaseFrame == nullptr)
-        {
-            BaseFrame = newframe;
-            return;
-        }
-
-        wxWindow* panel_root = BaseFrame->FindWindow(wxID_PANEL_ROOT);
-        const wxWindowList nodes = panel_root->GetChildren();
-        for(wxWindowList::const_iterator it = nodes.begin(); it != nodes.end(); ++it)
-        {
-            wxWindow* win = *it;
-            win->Show(false);
-        }
-
-        if(CurrentFrame != NULL)
-        {
-            CurrentFrame->Close();
-            delete CurrentFrame;
-        
-            const wxWindowList nodes = panel_root->GetChildren();
-            for(wxWindowList::const_iterator it = nodes.begin(); it != nodes.end(); ++it)
-            {
-                wxWindow* win = *it;
-                win->Destroy();
-            }
-        }
-
-        CurrentFrame = newframe;
-
-        wxWindow* found_panel = newframe->FindWindow(wxID_PANEL_ROOT);
-        if(found_panel != nullptr)
-        {
-            found_panel->Reparent(panel_root);
-            wxSizer* sizer = found_panel->GetContainingSizer();
-            sizer->Detach(found_panel);
-            panel_root->GetSizer()->Add(found_panel, 1, wxEXPAND | wxALL, 0);
-            panel_root->Layout();
-        }
-    }
-    
+    static void SetNewframe(wxFrame* newframe);
     static bool SetFrameLayout(wxWindow* child)
     {
         wxWindow* target = child;

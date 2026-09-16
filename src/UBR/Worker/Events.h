@@ -37,6 +37,7 @@ protected:
     wxCriticalSection cs;
     void send_event()
     {
+        if(event_handler == nullptr) return;
         wxThreadEvent* ev = new wxThreadEvent();
         ThreadState state_n = state;
         ev->SetPayload(state_n);
@@ -82,6 +83,11 @@ public:
         wxCriticalSectionLocker locker(cs);
         state = THREAD_STARTED;
         send_event();
+        return state;
+    }
+    ThreadState GetState()
+    {
+        wxCriticalSectionLocker locker(cs);
         return state;
     }
 

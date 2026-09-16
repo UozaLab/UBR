@@ -33,6 +33,7 @@ class VirtualDiskStream
     ~VirtualDiskStream();
     UINT8* Read(UINT64 sector, UINT32 sector_count);
     UINT8* ReadRange(UINT64 sector, UINT32 least_byte_size);
+    bool Write(UINT8* data, UINT64 sector, UINT32 sector_count);
 };
 
 

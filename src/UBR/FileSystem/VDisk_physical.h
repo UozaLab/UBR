@@ -48,6 +48,8 @@ public:
     virtual DWORD GetTableEntriesCount();
     virtual UINT32 GetDiskType();
     virtual BOOL GetBlockData(unsigned char* blockdata, DWORD blockindex, DWORD* ByteRead, bool* can_skip);
+    virtual BOOL SetBlockData(const UINT8* blockdata, DWORD blockindex, DWORD* ByteWrite) { return FALSE; }
+
 };
 
 #endif

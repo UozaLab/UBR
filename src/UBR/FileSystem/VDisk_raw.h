@@ -21,18 +21,24 @@
 #include <windows.h>
 #include "tstring.h"
 #include "VDisk.h"
+#include "PrivilegeControl.h"
 
 class RAW : public VirtualDisk
 {
 public:
     RAW(const tstring& _filename)
-        :VirtualDisk(_filename), invalid(false)
+        :VirtualDisk(_filename), invalid(false), block_size(0), disk_size(0)
     {
     }
+    RAW(const tstring& _filename, UINT32 _block_size, UINT64 _disk_size);
+    ~RAW();
 
 protected:
+    UINT32 block_size;
+    UINT64 disk_size;
     virtual void guard();
     bool invalid;
+    PrivilegeControl privilege;
 
 public:
     virtual tstring GetFileFormat()
@@ -47,6 +53,7 @@ public:
     virtual DWORD GetTableEntriesCount();
     virtual UINT32 GetDiskType();
     virtual BOOL GetBlockData(UINT8* blockdata, DWORD blockindex, DWORD* ByteRead, bool* can_skip);
+    virtual BOOL SetBlockData(const UINT8* blockdata, DWORD blockindex, DWORD* ByteWrite);
 };
 
 #endif

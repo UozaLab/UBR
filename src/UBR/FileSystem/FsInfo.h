@@ -71,6 +71,14 @@ struct CLUSTER_RANGE
     AddressFrom(0ULL), AddressTo(0ULL) {}
 };
 
+struct SECTOR_RANGE
+{
+    UINT64 AddressFrom;
+    UINT64 AddressTo;
+    SECTOR_RANGE():
+    AddressFrom(0ULL), AddressTo(0ULL) {}
+};
+
 struct VOLUME_SIZE_INFO
 {
     std::vector<CLUSTER_RANGE> EmptyClusterRanges;

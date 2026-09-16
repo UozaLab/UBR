@@ -15,29 +15,28 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef __FS__H__
-#define __FS__H__
+#ifndef __RAW_WX_H__
+#define __RAW_WX_H__
 
 #include <windows.h>
-#include "smart_ptr.h"
 #include "tstring.h"
-#include "VDiskStream.h"
-#include "FsInfo.h"
-#include "MbrGpt.h"
+#include "smart_ptr.h"
+#include "VDisk_raw.h"
+#include "VDisk_vss.h"
+#include <wx/stream.h>
 
-class FileSystem
+class RAW_VSS : public RAW
 {
-protected:
-    shared_ptr<VirtualDiskStream> stream;
-    VOLUME_TYPE_INFO create_volume_type_info(UINT64 partition_start_sector);
+  protected:
+    wxOutputStream* out_stream;
+    wxInputStream* in_stream;
 
-public:
-    static tstring PartitionTypeToString(UINT8 partition_type);
-    static FS_TYPE PartitionTypeToFSType(UINT8 partition_type);
-    static tstring FSTypeToString(FS_TYPE fs_type);
-    FileSystem(shared_ptr<VirtualDiskStream> _stream);
-    FSInfo GetFSInfo(UINT64 partition_start_sector);
-    shared_ptr<DiskUpdaterCollection> GetShrinkedSectorData(shared_ptr<MBRGPT> mbrgpt);
+  public:
+    RAW_VSS(wxOutputStream* _out_stream, shared_ptr<PhysicalVSS> _vss);
+    RAW_VSS(wxInputStream* _in_stream);
+    ~RAW_VSS();
+    virtual BOOL SetBlockData(const UINT8* blockdata, DWORD blockindex, DWORD* ByteWrite);
+    virtual BOOL GetBlockData(UINT8* blockdata, DWORD blockindex, DWORD* ByteRead, bool* can_skip);
 };
 
 #endif

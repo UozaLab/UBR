@@ -18,6 +18,7 @@
 #ifndef __VDISK_FACTORY__H__
 #define __VDISK_FACTORY__H__
 
+#include <wx/wx.h>
 #include <windows.h>
 #include "smart_ptr.h"
 #include "VDisk.h"
@@ -25,8 +26,7 @@
 class VirtualDiskFactory
 {
 public:
-    static shared_ptr<VirtualDisk> Create(const TCHAR* _filename);
-    static shared_ptr<VirtualDisk> Create(int disk_number);
+    static shared_ptr<VirtualDisk> Create(const wxString& filename);
 };
 
 #endif

@@ -1,3 +1,6 @@
+0.0.3 (2026.09.16)
+    add support for backing up a disk to a VHDX/VHD/RAW image
+
 0.0.2 (2026.06.02)
     support for making a bootable media to run a WinPE
     switched the development environment from VisualStudio to MSYS2

@@ -18,14 +18,16 @@
 #include "Restore.h"
 #include "SectorTask.h"
 #include "smart_ptr.h"
+#include "tstring.h"
 #include "FileSystem/VDisk.h"
-#include "FileSystem/VdiskFactory.h"
+#include "FileSystem/VDisk_Physical.h"
 #include "FileSystem/DiskInfo.h"
 #include "FileSystem/PhysicalDiskInfo.h"
 #include "FileSystem/MbrGpt.h"
 #include "FileSystem/Fs.h"
 #include "FileSystem/VDiskStream.h"
-#include "FileSystem/ForensicAnalysis.h"
+#include "FileSystem/VDiskFactory.h"
+#include "MiscWx.h"
 #include <vector>
 
 RestoreWorker::RestoreWorker(wxEvtHandler* event_handler, const RestoreData* _restore_data, shared_ptr<DiskInfo> _di)
@@ -84,7 +86,7 @@ void* RestoreWorker::Entry()
     //
     {
     shared_ptr<VirtualDisk> src = VirtualDiskFactory::Create(restore_data->filepath);
-    shared_ptr<VirtualDisk> dest = VirtualDiskFactory::Create(restore_data->disk_number);
+    shared_ptr<VirtualDisk> dest(new Physical(restore_data->disk_number));
     MBRGPT src_mbrgpt(src);
     if(!src_mbrgpt.IsValid())
     {
@@ -182,7 +184,13 @@ END:
     if(TerminateRequired())
         wxQueueEvent(event_handler, new MsgEvent(_T("Terminated")));
     else
-        wxQueueEvent(event_handler, new MsgEvent(_T("Done")));
+    {
+        wxQueueEvent(event_handler, new MsgEvent(ttt("FinishMsg"), wxColour(0, 0, 255)));
+        wxQueueEvent(event_handler, new MsgEvent(ttt("FinishMsg2")));
+        wxQueueEvent(event_handler, new MsgEvent(ttt("CautionMsg"), wxColour(0, 0, 255)));
+        wxQueueEvent(event_handler, new MsgEvent(ttt("CautionMsg2"), wxColour(0, 0, 255)));
+    }
+
     SetStateComplete();
 
     return NULL;

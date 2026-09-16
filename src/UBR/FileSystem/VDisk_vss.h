@@ -46,13 +46,14 @@ class PartitionSequenceUtility
 {
 public:
     static PartitionSequence CreateInvalidSequence(DWORD bytes_per_sector, DWORD disk_id, UINT64 start_sector, UINT64 end_sector);
-    static PartitionSequence GetPartitionSequence(const std::vector<PartitionSequence>& part_seqs, UINT64 address_sector);
+    static PartitionSequence FindPartitionSequence(const std::vector<PartitionSequence>& part_seqs, UINT64 address_sector);
+    static PartitionSequence GetPartitionSequence(const std::vector<PartitionSequence>& part_seqs, DWORD partition_number);
 };
 
 struct EmptyClusterRanges
 {
     std::map<int, std::vector<CLUSTER_RANGE>> cluster_ranges;
-    std::map<int, UINT8> SectorsPerClusters;
+    std::map<int, UINT8> SectorsPerClusters;// <int:partition_number, ...>
 };
 
 class PhysicalVSS : public Physical, public enable_shared_from_this<PhysicalVSS>
@@ -66,11 +67,14 @@ protected:
     int partition_current;
     EmptyClusterRanges empty_cluster_ranges;
 
-    bool open_partition(const PartitionSequence& seq);
     bool skip(const PartitionSequence& seq, UINT64 start_sector, UINT64 end_sector);
+    bool open_partition(const PartitionSequence& seq);
+    DWORD count_blocks(UINT64 cluster_from, UINT64 cluster_to, INT32& BlockIndexMax);
+    UINT32 blocksize;
 public:
-    PhysicalVSS(int _disk_number, shared_ptr<DiskInfo> _di);
+    PhysicalVSS(int _disk_number, shared_ptr<DiskInfo> _di, UINT32 _blocksize, bool create_vss = true);
     ~PhysicalVSS();
+    virtual DWORD GetBlockSize();
 
     virtual tstring GetFileFormat()
     {
@@ -79,6 +83,8 @@ public:
     virtual BOOL GetBlockData(unsigned char* blockdata, DWORD blockindex, DWORD* ByteRead, bool* can_skip);
     bool IsVssSnapshotCreated() { return vss_created; }
     void CreateEmptyClusterRanges();
+    bool CanSkip(DWORD blockindex);
+    DWORD GetActualBlockCount();
     shared_ptr<PhysicalVSS> GetPtr() { return shared_from_this(); }
 };
 

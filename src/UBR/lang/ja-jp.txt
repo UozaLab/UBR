@@ -18,6 +18,10 @@ Title_Restore_1 = リストア - ファイルの内容を確認してくださ�
 Title_Restore_s01 = リストア - リストア先のディスクを選択してください
 Title_Restore_s02 = リストア - リストア処理中です
 Title_Tools = ツール
+Title_Backup = バックアップ - バックアップするディスクを選択してください
+Title_Backup_s01 = バックアップ - 保存するイメージファイルの種類を選択してください
+Title_Backup_s02 = バックアップ - オプションを選択してください
+Title_Backup_s03 = バックアップ - バックアップ処理中です
 
 PrevBtnText = 戻る
 NextBtnText = 次へ
@@ -39,9 +43,28 @@ FastCloneBtnDesc = 高速なクローンは使用中のデータのみをコピ�
 ExactCloneBtnTitle = 厳密なクローン
 ExactCloneBtnDesc = 厳密なクローンはHDD上のすべてのデータをコピーします。クローンには時間がかかります。\nこのモードはPCに詳しい人用です。\nクローン元よりも小さな容量のHDDにはクローンできません。
 
+BackupVHDXBtnDesc = VHDXはバーチャルHDDフォーマットです。\n通常はこれを選択してください。
+BackupVHDBtnDesc = VHDもバーチャルHDDフォーマットです。\nこのフォーマットは2TBのサイズ限界があります。
+BackupRAWBtnDesc = RAW無圧縮フォーマットです。\nこれはPCに詳しい人用です。
+SaveImageFile = 保存ファイルを指定します
+BackupPath = バックアップ先パス : 
+BackupPathWarn = ※上書きされます！！
+StartBackupBtnText = バックアップ開始
+BackupVSSBtn = VSS
+BackupCompressBtn = 圧縮
+BackupFastBtn = 高速バックアップ
+BackupVSSBtnDesc = VSSはVolume Shadow Copy Serviceの略です。\nVSSを使うとWindows動作中でもバックアップが可能です。
+BackupCompressBtnDesc = このモードを選択すると圧縮をしながらバックアップを実施します。\nファイル名の末尾に'.lz4'が追加されます。
+BackupFastBtnDesc = 高速バックアップは未使用領域をスキップすることで高速にバックアップします。
+
 ToolsShell = コマンドプロンプト
 ToolsShellDesc = テキストベース（コマンドライン）の機能を実行できます。
 ToolsWinPE = ブータブルメディアの作成
 ToolsWinPEDesc = WinPEの起動メディアを作成します。
 
 Description = "UBRはHDDのバックアップ、リストア、クローンユーティリティです。\n個人/商用どちらでも無料で利用できます。"
+
+FinishMsg = 処理が完了しました
+FinishMsg2 = 完了をクリックするとホーム画面に戻ります
+CautionMsg = 同じIDを持つディスクが存在するとIDの衝突が発生します
+CautionMsg2 = ディスクがオンラインにならない場合、もう片方のディスクを取り外してみてください

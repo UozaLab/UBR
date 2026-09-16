@@ -70,6 +70,9 @@ IDB_PNG15               RCDATA                  "icons\\GlyphRight_16x.png"
 IDB_PNG16               RCDATA                  "icons\\CacheGroup_32x.png"
 IDB_PNG17               RCDATA                  "icons\\DataCompare_32x.png"
 IDB_PNG18               RCDATA                  "icons\\USB.png"
+IDB_PNG19               RCDATA                  "icons\\Cache_32x.png"
+IDB_PNG20               RCDATA                  "icons\\ComputerService_32x.png"
+IDB_PNG21               RCDATA                  "icons\\ZipFile.png"
 
 
 /////////////////////////////////////////////////////////////////////////////

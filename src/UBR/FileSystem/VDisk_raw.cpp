@@ -17,6 +17,31 @@
 
 #include "VDisk_raw.h"
 
+RAW::RAW(const tstring& _filename, UINT32 _block_size, UINT64 _disk_size)
+     : VirtualDisk(_filename, true), invalid(false), block_size(_block_size), disk_size(_disk_size)
+{
+    guard();
+    if(invalid) return;
+    if(stream_mode) return;
+#ifdef ENLARGE_FILE
+    if(!privilege.IsValid()) return;
+    privilege.SetPrivilege(SE_MANAGE_VOLUME_NAME , true);
+
+    LARGE_INTEGER pointer;
+    pointer.QuadPart = disk_size;
+    SetFilePointerEx(handle, pointer, NULL, FILE_BEGIN);
+    SetEndOfFile(handle);
+    SetFileValidData(handle, disk_size);
+#endif
+}
+
+RAW::~RAW()
+{
+    if(stream_mode) return;
+#ifdef ENLARGE_FILE
+    privilege.SetPrivilege(SE_MANAGE_VOLUME_NAME , false);
+#endif
+}
 
 BOOL RAW::IsValid()
 {
@@ -38,6 +63,8 @@ ULONGLONG RAW::GetDiskSize()
 {
     guard();
     if(invalid) return 0ULL;
+    if(create_new) return disk_size;
+    if(stream_mode) return disk_size;
 
     WIN32_FILE_ATTRIBUTE_DATA FileInfo;
     LARGE_INTEGER raw_disk_size;
@@ -57,7 +84,13 @@ DWORD RAW::GetBlockSize()
 {
     guard();
     if(invalid) return 0;
-
+    if(create_new) return block_size;
+    if(stream_mode)
+    {
+        if(!large_scale_mode) return 1048576; // 1MB
+        return 134217728; // 128MB
+    }
+    
     ULONGLONG disksize = GetDiskSize();
 
     if(large_scale_mode == false && disksize >= 1048576)
@@ -107,3 +140,30 @@ BOOL RAW::GetBlockData(UINT8* blockdata, DWORD blockindex, DWORD* ByteRead, bool
         return FALSE;
     return TRUE;
 }
+
+BOOL RAW::SetBlockData(const UINT8* blockdata, DWORD blockindex, DWORD* ByteWrite)
+{
+    guard();
+    if(invalid) return FALSE;
+
+    DWORD blockcount = GetTableEntriesCount();
+    if(blockindex < 0 || blockindex >= blockcount)
+        return FALSE;
+    DWORD blocksize = GetBlockSize();
+
+    LARGE_INTEGER filepointer;
+    filepointer.QuadPart = ((UINT64)blocksize) * blockindex;
+    SetFilePointerEx(handle, filepointer, NULL, FILE_BEGIN);
+
+    ULONGLONG disksize = GetDiskSize();
+    if(filepointer.QuadPart + blocksize >  disksize)
+    {
+        blocksize -= (DWORD) (filepointer.QuadPart + blocksize - disksize);
+    }
+
+    if(!WriteFile(handle, blockdata, blocksize, ByteWrite, NULL))
+        return FALSE;
+
+    return TRUE;
+}
+

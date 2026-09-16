@@ -18,7 +18,7 @@
 #include "Clone.h"
 #include "SectorTask.h"
 #include "FileSystem/VDisk.h"
-#include "FileSystem/VdiskFactory.h"
+#include "FileSystem/VDisk_physical.h"
 #include "FileSystem/DiskInfo.h"
 #include "FileSystem/PhysicalDiskInfo.h"
 #include "FileSystem/VDisk_vss.h"
@@ -26,9 +26,9 @@
 #include "FileSystem/Fs.h"
 #include "FileSystem/VDiskStream.h"
 #include "FileSystem/ForensicAnalysis.h"
-#include "VSS/Vss.h"
 #include "tstring.h"
 #include "Misc.h"
+#include "MiscWx.h"
 #include <vector>
 
 CloneWorker::CloneWorker(wxEvtHandler* event_handler, const CloneData* _clone_data, shared_ptr<DiskInfo> _di)
@@ -42,7 +42,6 @@ void* CloneWorker::Entry()
     SetStateStart();
 
     std::vector<HANDLE> handles_locked;
-    Vss vss;
     shared_ptr<DiskUpdaterCollection> updaters(new DiskUpdaterCollection());
 
     //
@@ -102,7 +101,7 @@ void* CloneWorker::Entry()
     //
     {
     wxQueueEvent(event_handler, new MsgEvent("Creating a volume snapshot"));
-    shared_ptr<PhysicalVSS> src(new PhysicalVSS(clone_data->disk_number_src, di));
+    shared_ptr<PhysicalVSS> src(new PhysicalVSS(clone_data->disk_number_src, di, 134217728/*128MB*/));
     if(src->IsVssSnapshotCreated())
         wxQueueEvent(event_handler, new MsgEvent("Snapshot created"));
     else
@@ -115,16 +114,13 @@ void* CloneWorker::Entry()
         else
             wxQueueEvent(event_handler, new MsgEvent("Failed to create a snapshot"));
     }
-    shared_ptr<VirtualDisk> dest = VirtualDiskFactory::Create(clone_data->disk_number_dst);
+    shared_ptr<VirtualDisk> dest(new Physical(clone_data->disk_number_dst));
     MBRGPT src_mbrgpt(src);
     if(!src_mbrgpt.IsValid())
     {
         wxQueueEvent(event_handler, new ErrorEvent(_T("Invalid disk")));
         goto END;
     }
-
-    src->CreateEmptyClusterRanges();
-    src->SetLargeScaleMode(true);
 
     if(clone_data->exact_mode)
     {
@@ -136,6 +132,7 @@ void* CloneWorker::Entry()
         goto END;
     }
 
+    src->CreateEmptyClusterRanges();
     shared_ptr<MBRGPT> mod_mbrgpt = src_mbrgpt.CreateShrinked(dest);
     if(!mod_mbrgpt->IsValid())
     {
@@ -208,8 +205,8 @@ void* CloneWorker::Entry()
     //
     // Update disk properties
     //
-    DWORD BytesReturened;
-    DeviceIoControl(dest_handle, IOCTL_DISK_UPDATE_PROPERTIES, NULL, 0, NULL, 0, &BytesReturened, NULL);
+    //DWORD BytesReturened;
+    //DeviceIoControl(dest_handle, IOCTL_DISK_UPDATE_PROPERTIES, NULL, 0, NULL, 0, &BytesReturened, NULL);
 
     }
     }
@@ -226,7 +223,13 @@ END:
     if(TerminateRequired())
         wxQueueEvent(event_handler, new MsgEvent(_T("Terminated")));
     else
-        wxQueueEvent(event_handler, new MsgEvent(_T("Done")));
+    {
+        wxQueueEvent(event_handler, new MsgEvent(ttt("FinishMsg"), wxColour(0, 0, 255)));
+        wxQueueEvent(event_handler, new MsgEvent(ttt("FinishMsg2")));
+        wxQueueEvent(event_handler, new MsgEvent(ttt("CautionMsg"), wxColour(0, 0, 255)));
+        wxQueueEvent(event_handler, new MsgEvent(ttt("CautionMsg2"), wxColour(0, 0, 255)));
+    }
+
     SetStateComplete();
 
     return NULL;
