@@ -27,6 +27,8 @@
 #include "Worker/Clone.h"
 #include "Worker/Backup.h"
 #include "Worker/Events.h"
+#include "Worker/Compress.h"
+#include "Worker/Decompress.h"
 #include "FileSystem/PhysicalDiskInfo.h"
 #include "FileSystem/DiskInfo.h"
 
@@ -243,7 +245,41 @@ public:
     void OnClose( wxCloseEvent& event );
     void OnClickShellButton( wxCommandEvent& event );
     void OnClickCreateWinPEButton( wxCommandEvent& event );
+    void OnClickCompressButton( wxCommandEvent& event );
 };
+
+class Container_Tools_lz4Impl_s01 : public Container_Tools_lz4_s01, ContainerCommon
+{
+public:
+    Container_Tools_lz4Impl_s01(FrameImpl* _frameimpl);
+    void OnClose( wxCloseEvent& event );
+    void OnClickCompressButton( wxCommandEvent& event );
+    void OnClickDecompressButton( wxCommandEvent& event );
+};
+
+class Container_Tools_lz4Impl_s02 : public Container_Tools_lz4_s02, ContainerCommon
+{
+public:
+    Container_Tools_lz4Impl_s02(FrameImpl* _frameimpl);
+    void OnClose( wxCloseEvent& event );
+    void OnClickPrevButton( wxCommandEvent& event );
+    void OnClickNextButton( wxCommandEvent& event );
+    void OnClickButton( wxCommandEvent& event );
+};
+
+class Container_Tools_lz4Impl_s03 : public Container_Common_ProgressImpl, ContainerCommon
+{
+protected:
+    CompressWorker* compress;
+    DecompressWorker* decompress;
+
+public:
+    Container_Tools_lz4Impl_s03( FrameImpl* _frameimpl );
+
+    void OnClickNextButton( wxCommandEvent& event );
+    void OnClose( wxCloseEvent& event );
+};
+
 
 class Container_Util
 {

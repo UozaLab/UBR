@@ -267,6 +267,7 @@ bool LZ4OutputStream::Close()
                                                  NULL);
         if(LZ4F_isError(ret)) return false;
         stream->WriteAll(state_write.Buf, ret);
+        damaged = false;
     }
     return true;
 }

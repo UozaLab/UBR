@@ -1162,6 +1162,9 @@ Container_Tools::Container_Tools( wxWindow* parent, wxWindowID id, const wxStrin
 	m_customControl71 = new SimpleButton( m_panel171, wxID_BACKUP_DISK, wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer191->Add( m_customControl71, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 12 );
 
+	m_customControl81 = new SimpleButton( m_panel171, wxID_BACKUP_DISK, wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer191->Add( m_customControl81, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 12 );
+
 
 	m_panel171->SetSizer( bSizer191 );
 	m_panel171->Layout();
@@ -1194,5 +1197,192 @@ Container_Tools::~Container_Tools()
 {
 	// Disconnect Events
 	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( Container_Tools::OnClose ) );
+
+}
+
+Container_Tools_lz4_s01::Container_Tools_lz4_s01( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+
+	wxBoxSizer* bSizer4;
+	bSizer4 = new wxBoxSizer( wxVERTICAL );
+
+	m_panel_tool = new wxPanel( this, wxID_PANEL_ROOT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel_tool->SetBackgroundColour( wxColour( 245, 245, 245 ) );
+
+	wxBoxSizer* bSizer36;
+	bSizer36 = new wxBoxSizer( wxVERTICAL );
+
+	m_scrolledwindow = new wxScrolledWindow( m_panel_tool, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxVSCROLL );
+	m_scrolledwindow->SetScrollRate( 5, 5 );
+	m_scrolledwindow->SetBackgroundColour( wxColour( 245, 245, 245 ) );
+
+	wxBoxSizer* bSizer20;
+	bSizer20 = new wxBoxSizer( wxVERTICAL );
+
+	m_panel71 = new wxPanel( m_scrolledwindow, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel71->SetBackgroundColour( wxColour( 225, 225, 225 ) );
+
+	wxBoxSizer* bSizer111;
+	bSizer111 = new wxBoxSizer( wxVERTICAL );
+
+
+	bSizer111->Add( 0, 8, 0, wxEXPAND, 5 );
+
+	m_staticText81 = new wxStaticText( m_panel71, wxID_ANY, wxT("Compress / UnCompress"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText81->Wrap( -1 );
+	m_staticText81->SetFont( wxFont( 12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
+	m_staticText81->SetForegroundColour( wxColour( 26, 26, 26 ) );
+
+	bSizer111->Add( m_staticText81, 0, wxLEFT, 12 );
+
+
+	bSizer111->Add( 0, 8, 0, wxEXPAND, 5 );
+
+
+	m_panel71->SetSizer( bSizer111 );
+	m_panel71->Layout();
+	bSizer111->Fit( m_panel71 );
+	bSizer20->Add( m_panel71, 0, wxEXPAND | wxALL, 0 );
+
+	m_panel171 = new wxPanel( m_scrolledwindow, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* bSizer191;
+	bSizer191 = new wxBoxSizer( wxVERTICAL );
+
+	m_customControl61 = new SimpleButton( m_panel171, wxID_BACKUP_DISK, wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer191->Add( m_customControl61, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 12 );
+
+	m_customControl71 = new SimpleButton( m_panel171, wxID_BACKUP_PART, wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer191->Add( m_customControl71, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 12 );
+
+
+	m_panel171->SetSizer( bSizer191 );
+	m_panel171->Layout();
+	bSizer191->Fit( m_panel171 );
+	bSizer20->Add( m_panel171, 1, wxEXPAND | wxALL, 0 );
+
+
+	m_scrolledwindow->SetSizer( bSizer20 );
+	m_scrolledwindow->Layout();
+	bSizer20->Fit( m_scrolledwindow );
+	bSizer36->Add( m_scrolledwindow, 1, wxEXPAND, 0 );
+
+
+	m_panel_tool->SetSizer( bSizer36 );
+	m_panel_tool->Layout();
+	bSizer36->Fit( m_panel_tool );
+	bSizer4->Add( m_panel_tool, 1, wxEXPAND, 0 );
+
+
+	this->SetSizer( bSizer4 );
+	this->Layout();
+
+	this->Centre( wxBOTH );
+
+	// Connect Events
+	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( Container_Tools_lz4_s01::OnClose ) );
+}
+
+Container_Tools_lz4_s01::~Container_Tools_lz4_s01()
+{
+	// Disconnect Events
+	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( Container_Tools_lz4_s01::OnClose ) );
+
+}
+
+Container_Tools_lz4_s02::Container_Tools_lz4_s02( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+
+	wxBoxSizer* bSizer8;
+	bSizer8 = new wxBoxSizer( wxVERTICAL );
+
+	m_panel_tool = new wxPanel( this, wxID_PANEL_ROOT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel_tool->SetBackgroundColour( wxColour( 245, 245, 245 ) );
+
+	wxBoxSizer* bSizer35;
+	bSizer35 = new wxBoxSizer( wxVERTICAL );
+
+	m_scrolledwindow = new wxScrolledWindow( m_panel_tool, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxVSCROLL );
+	m_scrolledwindow->SetScrollRate( 5, 5 );
+	m_scrolledwindow->SetBackgroundColour( wxColour( 245, 245, 245 ) );
+
+	wxBoxSizer* bSizer20;
+	bSizer20 = new wxBoxSizer( wxVERTICAL );
+
+	m_panel71 = new wxPanel( m_scrolledwindow, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel71->SetBackgroundColour( wxColour( 225, 225, 225 ) );
+
+	wxBoxSizer* bSizer111;
+	bSizer111 = new wxBoxSizer( wxVERTICAL );
+
+
+	bSizer111->Add( 0, 8, 0, wxEXPAND, 5 );
+
+	m_staticText81 = new wxStaticText( m_panel71, wxID_ANY, wxT("Compress"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText81->Wrap( -1 );
+	m_staticText81->SetFont( wxFont( 12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
+	m_staticText81->SetForegroundColour( wxColour( 26, 26, 26 ) );
+
+	bSizer111->Add( m_staticText81, 0, wxLEFT, 12 );
+
+
+	bSizer111->Add( 0, 8, 0, wxEXPAND, 5 );
+
+
+	m_panel71->SetSizer( bSizer111 );
+	m_panel71->Layout();
+	bSizer111->Fit( m_panel71 );
+	bSizer20->Add( m_panel71, 0, wxEXPAND | wxALL, 0 );
+
+	m_panel171 = new wxPanel( m_scrolledwindow, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* bSizer191;
+	bSizer191 = new wxBoxSizer( wxVERTICAL );
+
+	m_customControl61 = new SimpleButton( m_panel171, wxID_RESTORE_SELECTFILE, wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer191->Add( m_customControl61, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 12 );
+
+	m_staticText7 = new wxStaticText( m_panel171, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END );
+	m_staticText7->Wrap( -1 );
+	bSizer191->Add( m_staticText7, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 12 );
+
+
+	bSizer191->Add( 0, 0, 1, wxEXPAND, 5 );
+
+
+	m_panel171->SetSizer( bSizer191 );
+	m_panel171->Layout();
+	bSizer191->Fit( m_panel171 );
+	bSizer20->Add( m_panel171, 1, wxEXPAND | wxALL, 0 );
+
+
+	m_scrolledwindow->SetSizer( bSizer20 );
+	m_scrolledwindow->Layout();
+	bSizer20->Fit( m_scrolledwindow );
+	bSizer35->Add( m_scrolledwindow, 1, wxEXPAND | wxALL, 0 );
+
+	m_prevnext = new PrevNextPanel( m_panel_tool, wxID_RESTORE_SELECTFILE, wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer35->Add( m_prevnext, 0, wxALL|wxEXPAND, 0 );
+
+
+	m_panel_tool->SetSizer( bSizer35 );
+	m_panel_tool->Layout();
+	bSizer35->Fit( m_panel_tool );
+	bSizer8->Add( m_panel_tool, 1, wxEXPAND, 0 );
+
+
+	this->SetSizer( bSizer8 );
+	this->Layout();
+
+	this->Centre( wxBOTH );
+
+	// Connect Events
+	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( Container_Tools_lz4_s02::OnClose ) );
+}
+
+Container_Tools_lz4_s02::~Container_Tools_lz4_s02()
+{
+	// Disconnect Events
+	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( Container_Tools_lz4_s02::OnClose ) );
 
 }

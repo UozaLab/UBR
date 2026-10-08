@@ -832,11 +832,19 @@ Container_ToolsImpl::Container_ToolsImpl( FrameImpl* _frameimpl )
     m_customControl71->SetNormalColour(COLOR_BUTTON_FACE_FRAME);
     m_customControl71->Bind( myEVT_SimpleButtonClicked, &Container_ToolsImpl::OnClickCreateWinPEButton, this);
 
+    Utility::SetIcon(m_customControl81, IDB_PNG21, ttt("ToolsComp"));
+    m_customControl81->SetDescription(ttt("ToolsCompDesc"));
+    m_customControl81->SetFrameMode(true);
+    m_customControl81->SetNormalColour(COLOR_BUTTON_FACE_FRAME);
+    m_customControl81->Bind( myEVT_SimpleButtonClicked, &Container_ToolsImpl::OnClickCompressButton, this);
+
 }
 
 void Container_ToolsImpl::OnClose( wxCloseEvent& event )
 {
     m_customControl61->Unbind( myEVT_SimpleButtonClicked, &Container_ToolsImpl::OnClickShellButton, this);
+    m_customControl71->Unbind( myEVT_SimpleButtonClicked, &Container_ToolsImpl::OnClickCreateWinPEButton, this);
+    m_customControl81->Unbind( myEVT_SimpleButtonClicked, &Container_ToolsImpl::OnClickCompressButton, this);
     Destroy();
 }
 
@@ -876,6 +884,196 @@ void Container_ToolsImpl::OnClickShellButton( wxCommandEvent& event )
     CloseHandle(pi.hThread);
     free(cmd);
 }
+
+void Container_ToolsImpl::OnClickCompressButton( wxCommandEvent& event )
+{
+    Container_Util::SetNewframe(new Container_Tools_lz4Impl_s01(frame_impl));
+}
+
+//
+// Container_Tools_lz4Impl_s01
+//
+Container_Tools_lz4Impl_s01::Container_Tools_lz4Impl_s01(FrameImpl* _frameimpl)
+: Container_Tools_lz4_s01( nullptr ), ContainerCommon(_frameimpl)
+{
+    m_staticText81->SetLabel(ttt("Title_Tools_lz4_s01"));
+
+    Utility::SetIcon(m_customControl61, IDB_PNG21, ttt("ToolsCompBtn"));
+    m_customControl61->SetDescription(ttt("ToolsCompBtnDesc"));
+    Utility::SetIcon(m_customControl71, IDB_PNG22, ttt("ToolsDecompBtn"));
+    m_customControl71->SetDescription(ttt("ToolsDecompBtnDesc"));
+    m_customControl61->SetFrameMode(true);
+    m_customControl71->SetFrameMode(true);
+    m_customControl61->SetNormalColour(COLOR_BUTTON_FACE_FRAME);
+    m_customControl71->SetNormalColour(COLOR_BUTTON_FACE_FRAME);
+    
+    m_customControl61->Bind( myEVT_SimpleButtonClicked, &Container_Tools_lz4Impl_s01::OnClickCompressButton, this);
+    m_customControl71->Bind( myEVT_SimpleButtonClicked, &Container_Tools_lz4Impl_s01::OnClickDecompressButton, this);
+}
+
+void Container_Tools_lz4Impl_s01::OnClose( wxCloseEvent& event )
+{
+    m_customControl61->Unbind( myEVT_SimpleButtonClicked, &Container_Tools_lz4Impl_s01::OnClickCompressButton, this);
+    m_customControl71->Unbind( myEVT_SimpleButtonClicked, &Container_Tools_lz4Impl_s01::OnClickDecompressButton, this);
+    Destroy();
+}
+
+void Container_Tools_lz4Impl_s01::OnClickCompressButton( wxCommandEvent& event )
+{
+    frame_impl->Holder()->compress_data.decompress = false;
+    Container_Util::SetNewframe(new Container_Tools_lz4Impl_s02(frame_impl));
+}
+
+void Container_Tools_lz4Impl_s01::OnClickDecompressButton( wxCommandEvent& event )
+{
+    frame_impl->Holder()->compress_data.decompress = true;
+    Container_Util::SetNewframe(new Container_Tools_lz4Impl_s02(frame_impl));
+}
+
+
+//
+// Container_Tools_lz4Impl_s02
+//
+Container_Tools_lz4Impl_s02::Container_Tools_lz4Impl_s02(FrameImpl* _frameimpl)
+: Container_Tools_lz4_s02( nullptr ), ContainerCommon(_frameimpl)
+{
+    bool decompress = frame_impl->Holder()->compress_data.decompress;
+    m_prevnext->GetButtonPrev()->Bind(myEVT_SimpleButtonClicked, &Container_Tools_lz4Impl_s02::OnClickPrevButton, this);
+    m_prevnext->GetButtonNext()->Bind(myEVT_SimpleButtonClicked, &Container_Tools_lz4Impl_s02::OnClickNextButton, this);
+
+    m_staticText81->SetLabel(decompress ? ttt("Title_Tools_lz4_s02_decompress") : ttt("Title_Tools_lz4_s02_compress"));
+    Utility::SetIcon(m_customControl61, IDB_PNG9, decompress ? ttt("SelectFileToDecompress") : ttt("SelectFileToCompress"));
+    m_customControl61->SetFrameMode(true);
+    m_customControl61->SetNormalColour(COLOR_BUTTON_FACE_FRAME);
+    m_customControl61->Bind( myEVT_SimpleButtonClicked, &Container_Tools_lz4Impl_s02::OnClickButton, this);
+
+    m_prevnext->SetEnabledPrev(true);
+    m_prevnext->SetTextNext(decompress ? ttt("StartDecompressBtnText") : ttt("StartCompressBtnText"));
+    m_prevnext->SetEnhanceNext(true);
+}
+
+void Container_Tools_lz4Impl_s02::OnClose( wxCloseEvent& event )
+{
+    m_customControl61->Unbind( myEVT_SimpleButtonClicked, &Container_Tools_lz4Impl_s02::OnClickButton, this);
+    m_prevnext->GetButtonPrev()->Unbind(myEVT_SimpleButtonClicked, &Container_Tools_lz4Impl_s02::OnClickPrevButton, this);
+    m_prevnext->GetButtonNext()->Unbind(myEVT_SimpleButtonClicked, &Container_Tools_lz4Impl_s02::OnClickNextButton, this);
+    Destroy();
+}
+
+void Container_Tools_lz4Impl_s02::OnClickPrevButton( wxCommandEvent& event )
+{
+    Container_Util::SetNewframe(new Container_Tools_lz4Impl_s01(frame_impl));
+}
+
+void Container_Tools_lz4Impl_s02::OnClickNextButton( wxCommandEvent& event )
+{
+    Container_Util::SetNewframe(new Container_Tools_lz4Impl_s03(frame_impl));
+}
+
+void Container_Tools_lz4Impl_s02::OnClickButton( wxCommandEvent& event )
+{
+    bool decompress = frame_impl->Holder()->compress_data.decompress;
+    wxString filepath;
+    wxString destpath;
+
+    if(decompress)
+    {
+        wxFileDialog openFileDialog(this, ttt("OpenCompressedFile"), "", "",
+                                    "lz4 files|*.lz4|All|*", 
+                                    wxFD_OPEN|wxFD_FILE_MUST_EXIST);
+        if (openFileDialog.ShowModal() == wxID_CANCEL)
+          return;
+
+        filepath = openFileDialog.GetPath();
+        bool tail_lz4 = filepath.Lower().EndsWith(".lz4");
+        if(tail_lz4)
+        {
+            destpath = filepath.Mid(0, filepath.Length() - 4);
+        }
+        else
+        {
+            destpath = filepath + ".decompressed";
+        }
+    }
+    else
+    {
+        wxFileDialog openFileDialog(this, ttt("OpenImageFile"), "", "",
+                                    "VHD files|*.vhdx;*.vhd|RAW files|*.raw|All|*", 
+                                    wxFD_OPEN|wxFD_FILE_MUST_EXIST);
+        if (openFileDialog.ShowModal() == wxID_CANCEL)
+          return;
+        
+        filepath = openFileDialog.GetPath();
+        destpath = filepath + _T(".lz4");
+    }
+
+    bool file_exists = wxFile::Exists(destpath);
+    wxString path_from = decompress ? ttt("DecompressPathFrom") : ttt("CompressPathFrom");
+    wxString path_to = decompress ? ttt("DecompressPathTo") : ttt("CompressPathTo");
+    wxString label;
+    if(file_exists)
+      label = wxString::Format("%s%s\n%s%s (%s)", path_from, filepath,
+                               path_to, destpath, ttt("BackupPathWarn"));
+    else
+      label = wxString::Format("%s%s\n%s%s", path_from, filepath,
+                               path_to, destpath);
+    m_staticText7->SetLabel(label);
+
+    frame_impl->Holder()->compress_data.src_path = filepath;
+    frame_impl->Holder()->compress_data.dst_path = destpath;
+    m_prevnext->SetEnabledNext(true);
+}
+
+//
+// Container_Tools_lz4Impl_s03
+//
+Container_Tools_lz4Impl_s03::Container_Tools_lz4Impl_s03( FrameImpl* _frameimpl )
+: Container_Common_ProgressImpl(_frameimpl), ContainerCommon(_frameimpl), compress(nullptr), decompress(nullptr)
+{
+    if(frame_impl->Holder()->compress_data.decompress)
+    {
+        decompress = new DecompressWorker(this, &frame_impl->Holder()->compress_data);
+        decompress->Run();
+        m_staticText81->SetLabel(ttt("Title_Tools_lz4_s03_decompress"));
+   }
+    else
+    {
+        compress = new CompressWorker(this, &frame_impl->Holder()->compress_data);
+        compress->Run();
+        m_staticText81->SetLabel(ttt("Title_Tools_lz4_s03_compress"));
+    }
+
+    progress->ShowPercent(true);
+     m_prevnext->SetTextNext(ttt("CancelBtnText"));
+    m_prevnext->SetEnabledNext(true);
+    m_textCtrl1->SetBackgroundColour(COLOR_BACKGROUND_TEXTCTRL);
+
+    m_prevnext->GetButtonNext()->Bind(myEVT_SimpleButtonClicked, &Container_Tools_lz4Impl_s03::OnClickNextButton, this);
+}
+
+void Container_Tools_lz4Impl_s03::OnClickNextButton( wxCommandEvent& event )
+{
+    if(ready_to_gonext || ready_to_goback)
+    {
+        frame_impl->OnClickHome(event);
+    }
+    else
+    {
+        if(frame_impl->Holder()->compress_data.decompress)
+          decompress->Terminate();
+        else
+          compress->Terminate();
+    }
+}
+
+void Container_Tools_lz4Impl_s03::OnClose( wxCloseEvent& event )
+{
+    delete compress;
+    delete decompress;
+    m_prevnext->GetButtonNext()->Unbind(myEVT_SimpleButtonClicked, &Container_Tools_lz4Impl_s03::OnClickNextButton, this);
+    Destroy();
+}
+
 
 //
 // Container_BackupImpl

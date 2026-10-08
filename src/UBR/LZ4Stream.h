@@ -83,12 +83,12 @@ class LZ4OutputStream : public wxOutputStream
     bool damaged;
 
     size_t OnSysWrite(const void *buf, size_t nbytes) wxOVERRIDE;
-    bool Close() wxOVERRIDE;
 
   public:
     LZ4OutputStream(wxOutputStream* _stream, unsigned long long _content_size = 0);
     virtual ~LZ4OutputStream();
     virtual wxFileOffset GetLength() const wxOVERRIDE { return (wxFileOffset) current_pos; }
+    bool Close() wxOVERRIDE;
 };
 
 #endif

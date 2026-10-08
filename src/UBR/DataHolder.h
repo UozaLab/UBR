@@ -88,12 +88,28 @@ public:
     FileType filetype;
 };
 
+class CompressData
+{
+public:
+    void Clear()
+    {
+        decompress = false;
+        src_path.Empty();
+        dst_path.Empty();
+    }
+public:
+    bool decompress;
+    wxString src_path;
+    wxString dst_path;
+};
+
 class DataHolder
 {
 public:
     RestoreData restore_data;
     CloneData clone_data;
     BackupData backup_data;
+    CompressData compress_data;
 };
 
 #endif

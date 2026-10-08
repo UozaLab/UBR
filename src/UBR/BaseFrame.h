@@ -379,6 +379,7 @@ class Container_Tools : public wxFrame
 		wxPanel* m_panel171;
 		SimpleButton* m_customControl61;
 		SimpleButton* m_customControl71;
+		SimpleButton* m_customControl81;
 
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnClose( wxCloseEvent& event ) { event.Skip(); }
@@ -390,6 +391,63 @@ class Container_Tools : public wxFrame
 		Container_Tools( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 
 		~Container_Tools();
+
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class Container_Tools_lz4_s01
+///////////////////////////////////////////////////////////////////////////////
+class Container_Tools_lz4_s01 : public wxFrame
+{
+	private:
+
+	protected:
+		wxPanel* m_panel71;
+		wxStaticText* m_staticText81;
+		wxPanel* m_panel171;
+		SimpleButton* m_customControl61;
+		SimpleButton* m_customControl71;
+
+		// Virtual event handlers, overide them in your derived class
+		virtual void OnClose( wxCloseEvent& event ) { event.Skip(); }
+
+
+	public:
+		wxPanel* m_panel_tool;
+		wxScrolledWindow* m_scrolledwindow;
+
+		Container_Tools_lz4_s01( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 350,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+
+		~Container_Tools_lz4_s01();
+
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class Container_Tools_lz4_s02
+///////////////////////////////////////////////////////////////////////////////
+class Container_Tools_lz4_s02 : public wxFrame
+{
+	private:
+
+	protected:
+		wxScrolledWindow* m_scrolledwindow;
+		wxPanel* m_panel71;
+		wxStaticText* m_staticText81;
+		wxPanel* m_panel171;
+		SimpleButton* m_customControl61;
+		wxStaticText* m_staticText7;
+		PrevNextPanel* m_prevnext;
+
+		// Virtual event handlers, overide them in your derived class
+		virtual void OnClose( wxCloseEvent& event ) { event.Skip(); }
+
+
+	public:
+		wxPanel* m_panel_tool;
+
+		Container_Tools_lz4_s02( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 350,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+
+		~Container_Tools_lz4_s02();
 
 };
 

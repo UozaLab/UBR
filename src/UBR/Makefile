@@ -25,7 +25,7 @@ SRCS = App.cpp BaseFrame.cpp FrameImpl.cpp Misc.cpp MiscWx.cpp tstring.cpp\
        Widgets/DiskInfoPanel.cpp Widgets/DiskPanelImpl.cpp Widgets/RoundedPanel.cpp \
        Widgets/PrevNextPanel.cpp Widgets/ProgressPanel.cpp Widgets/SimpleButton.cpp\
        Worker/Events.cpp Worker/Clone.cpp Worker/Restore.cpp Worker/SectorTask.cpp\
-       Worker/Backup.cpp\
+       Worker/Backup.cpp Worker/Compress.cpp Worker/Decompress.cpp\
        FileSystem/Crc32.cpp FileSystem/DiskInfo.cpp FileSystem/ForensicAnalysis.cpp \
        FileSystem/Fs.cpp FileSystem/Fs_fat.cpp FileSystem/Fs_ntfs.cpp FileSystem/MbrGpt.cpp\
        FileSystem/PhysicalDiskInfo.cpp FileSystem/VDisk_physical.cpp FileSystem/VDisk_raw.cpp\
