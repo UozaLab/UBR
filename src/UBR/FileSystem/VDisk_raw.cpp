@@ -88,7 +88,7 @@ DWORD RAW::GetBlockSize()
     if(stream_mode)
     {
         if(!large_scale_mode) return 1048576; // 1MB
-        return 134217728; // 128MB
+        return 33554432; // 32MB
     }
     
     ULONGLONG disksize = GetDiskSize();
@@ -103,7 +103,7 @@ DWORD RAW::GetBlockSize()
         power++;
     }
     power--;
-    return 1U << ((power < 27) ? power : 27);// 2^27=128MB
+    return 1U << ((power < 25) ? power : 25);// 2^25=32MB
 }
 
 DWORD RAW::GetTableEntriesCount()

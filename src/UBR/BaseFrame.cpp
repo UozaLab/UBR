@@ -48,6 +48,11 @@ BaseFrame::BaseFrame( wxWindow* parent, wxWindowID id, const wxString& title, co
 	wxBoxSizer* bSizer49;
 	bSizer49 = new wxBoxSizer( wxHORIZONTAL );
 
+	m_bitmap2 = new wxStaticBitmap( m_panel33, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0 );
+	m_bitmap2->SetToolTip( wxT("Reload Disks") );
+
+	bSizer49->Add( m_bitmap2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 3 );
+
 	m_bitmap1 = new wxStaticBitmap( m_panel33, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0 );
 	m_bitmap1->SetToolTip( wxT("Select Language") );
 
@@ -94,7 +99,8 @@ BaseFrame::BaseFrame( wxWindow* parent, wxWindowID id, const wxString& title, co
 
 	// Connect Events
 	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( BaseFrame::OnClose ) );
-	m_bitmap1->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( BaseFrame::OnLeftDown ), NULL, this );
+	m_bitmap2->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( BaseFrame::OnReloadDown ), NULL, this );
+	m_bitmap1->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( BaseFrame::OnGlobeDown ), NULL, this );
 	m_choice1->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( BaseFrame::OnChoice ), NULL, this );
 }
 
@@ -102,7 +108,8 @@ BaseFrame::~BaseFrame()
 {
 	// Disconnect Events
 	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( BaseFrame::OnClose ) );
-	m_bitmap1->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( BaseFrame::OnLeftDown ), NULL, this );
+	m_bitmap2->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( BaseFrame::OnReloadDown ), NULL, this );
+	m_bitmap1->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( BaseFrame::OnGlobeDown ), NULL, this );
 	m_choice1->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( BaseFrame::OnChoice ), NULL, this );
 
 }

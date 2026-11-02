@@ -22,6 +22,7 @@
 #include "LZ4Stream.h"
 #include <wx/wfstream.h>
 #include <wx/filename.h>
+#include <windows.h>
 
 DecompressWorker::DecompressWorker(wxEvtHandler* event_handler, const CompressData* _compress_data)
 : CustomThread(event_handler),
@@ -33,17 +34,15 @@ void* DecompressWorker::Entry()
 {
     SetStateStart();
 
-    const int buff_size = 1024*1024;
+    const int buff_size = 1024*1024*100;
     UINT8* buff = new UINT8[buff_size];
 
     wxFileName src_path(compress_data->src_path);
     wxFileName dst_path(compress_data->dst_path);
-    unsigned long long src_size = src_path.GetSize().ToULong();
-    unsigned long long sum_bytes = 0;
+    unsigned long long src_size = src_path.GetSize().GetValue();
     int progress = 0;
 
     LZ4InputStream in_stream(new wxFileInputStream(src_path.GetFullPath()));
-    unsigned long long dst_size = in_stream.GetLength();
     wxFileOutputStream out_stream(dst_path.GetFullPath());
     if(!out_stream.Ok())
     {
@@ -54,7 +53,7 @@ void* DecompressWorker::Entry()
     wxQueueEvent(event_handler, new MsgEvent("Start decompressing"));
     wxQueueEvent(event_handler, new MsgEvent(wxString::Format("Src  : %s", src_path.GetFullPath())));
     wxQueueEvent(event_handler, new MsgEvent(wxString::Format("Dest : %s", dst_path.GetFullPath())));
-    
+
     while(true)
     {
         if(TerminateRequired()) goto END;
@@ -62,24 +61,18 @@ void* DecompressWorker::Entry()
         in_stream.Read(buff, buff_size);
         size_t byte_to_read = in_stream.LastRead();
         if(byte_to_read == 0) break;
-
         out_stream.WriteAll(buff, byte_to_read);
-        sum_bytes += byte_to_read;
 
-        if(dst_size != 0)
+        double progress_double = ((double)in_stream.BaseStream()->TellI() / (double) src_size)*100.0;
+        if(progress != (int)progress_double)
         {
-            double progress_double = ((double)sum_bytes / (double) dst_size)*100.0;
-            if(progress != (int)progress_double)
-            {
-                progress = (int)progress_double;
-                wxQueueEvent(event_handler, new ProgressEvent(progress_double));
-            }
+            progress = (int)progress_double;
+            wxQueueEvent(event_handler, new ProgressEvent(progress_double));
         }
     }
 
     wxQueueEvent(event_handler, new ProgressEvent(100.));
-    dst_size = dst_path.GetSize().ToULong();
-    wxQueueEvent(event_handler, new MsgEvent(wxString::Format("Result : %s ==> %s", Unit::HumanReadable(src_size), Unit::HumanReadable(dst_size))));
+    wxQueueEvent(event_handler, new MsgEvent(wxString::Format("Result : %s ==> %s", Unit::HumanReadable(src_size), Unit::HumanReadable(dst_path.GetSize().GetValue()))));
 
     wxQueueEvent(event_handler, new MsgEvent(ttt("FinishMsg"), wxColour(0, 0, 255)));
     wxQueueEvent(event_handler, new MsgEvent(ttt("FinishMsg2")));

@@ -201,7 +201,9 @@ FrameImpl::FrameImpl()
         m_choice1->Enable(false);
     }
     m_bitmap1->SetSize(16, 16);
+    m_bitmap2->SetSize(16, 16);
     Utility::SetIcon(m_bitmap1, IDB_PNG13);
+    Utility::SetIcon(m_bitmap2, IDB_PNG5);
     m_choice1->Show(false);
 
     Utility::SetIcon(m_customControl1, IDB_PNG3, "Home");
@@ -218,11 +220,14 @@ FrameImpl::FrameImpl()
     m_customControl4->Bind( myEVT_SimpleButtonClicked, &FrameImpl::OnClickClone, this);
     m_customControl5->Bind( myEVT_SimpleButtonClicked, &FrameImpl::OnClickTools, this);
 
-    di = DiskInfoFactory::CreateDiskInfo();
+    Bind(wxEVT_THREAD, &FrameImpl::OnThreadEvent, this);
 
     Container_Util::SetNewframe(this);
     wxCommandEvent ev;
     OnClickHome(ev);
+
+    initialize = new InitializeWorker(this, &dataholder);
+    initialize->Run();
 }
 
 void FrameImpl::init_language()
@@ -244,14 +249,38 @@ void FrameImpl::OnChoice( wxCommandEvent& event )
     OnClickHome(event);
 }
 
-void FrameImpl::OnLeftDown( wxMouseEvent& event )
+void FrameImpl::OnGlobeDown( wxMouseEvent& event )
 {
     m_choice1->Show(true);
     Layout();
 }
 
+void FrameImpl::OnReloadDown( wxMouseEvent& event )
+{
+    wxCommandEvent ev;
+    OnClickHome(ev);
+    delete initialize;
+    initialize = new InitializeWorker(this, &dataholder);
+    initialize->Run();
+}
+
+void FrameImpl::OnThreadEvent(wxThreadEvent& event)
+{
+    ThreadState thread_state = event.GetPayload<ThreadState>();
+
+    if(thread_state == THREAD_STARTED)
+    {
+        PauseButtons(true);
+    }
+    else if(thread_state == THREAD_FINISHED)
+    {
+        PauseButtons(false);
+    }
+}
+
 void FrameImpl::OnClose( wxCloseEvent& event )
 {
+    Unbind(wxEVT_THREAD, &FrameImpl::OnThreadEvent, this);
     m_customControl5->Unbind( myEVT_SimpleButtonClicked, &FrameImpl::OnClickTools, this);
     m_customControl4->Unbind( myEVT_SimpleButtonClicked, &FrameImpl::OnClickClone, this);
     m_customControl3->Unbind( myEVT_SimpleButtonClicked, &FrameImpl::OnClickRestore, this);
@@ -262,6 +291,7 @@ void FrameImpl::OnClose( wxCloseEvent& event )
     Destroy();
 
     delete MultiLanguage::Instance();
+    delete initialize;
 }
 
 void FrameImpl::OnClickHome( wxCommandEvent& event )
@@ -302,6 +332,8 @@ void FrameImpl::PauseButtons(bool pause)
 
     m_bitmap1->Enable(!pause);
     m_bitmap1->Refresh();
+    m_bitmap2->Enable(!pause);
+    m_bitmap2->Refresh();
     m_choice1->Show(false);
 }
 
@@ -323,6 +355,7 @@ void FrameImpl::deselect_all(const SimpleButton* except)
         (*target)->SetSelected((except != NULL && (*target) == except));
         target++;
     };
+    m_choice1->Show(false);
 }
 
 //
@@ -519,7 +552,7 @@ Container_RestoreImpl_s01::Container_RestoreImpl_s01( FrameImpl* _frameimpl )
     DiskInfoPanel* panel = new DiskInfoPanel(sizer->GetContainingWindow(), this);
     panel->SetSelectionMode(DISK_PANEL_SELECTION_DISK);
 
-    shared_ptr<DiskInfo> di = frame_impl->GetDiskInfo();
+    shared_ptr<DiskInfo> di = frame_impl->Holder()->disk_info;
     for(std::map<DWORD, shared_ptr<PhysicalDiskInfo>>::iterator itr=di->PhysicalDisks.begin(), itr_end = di->PhysicalDisks.end();
         itr != itr_end; ++itr)
     {
@@ -583,7 +616,8 @@ Container_RestoreImpl_s02::Container_RestoreImpl_s02( FrameImpl* _frameimpl )
 
     m_prevnext->GetButtonNext()->Bind(myEVT_SimpleButtonClicked, &Container_RestoreImpl_s02::OnClickNextButton, this);
 
-    restore = new RestoreWorker(this, &frame_impl->Holder()->restore_data, frame_impl->GetDiskInfo());
+    shared_ptr<DiskInfo> di = frame_impl->Holder()->disk_info;
+    restore = new RestoreWorker(this, &frame_impl->Holder()->restore_data, di);
     restore->Run();
 }
 
@@ -657,7 +691,7 @@ Container_CloneImpl_s01::Container_CloneImpl_s01( FrameImpl* _frameimpl )
     DiskInfoPanel* panel = new DiskInfoPanel(sizer->GetContainingWindow(), this);
     panel->SetSelectionMode(DISK_PANEL_SELECTION_DISK);
 
-    shared_ptr<DiskInfo> di = frame_impl->GetDiskInfo();
+    shared_ptr<DiskInfo> di = frame_impl->Holder()->disk_info;
     for(std::map<DWORD, shared_ptr<PhysicalDiskInfo>>::iterator itr=di->PhysicalDisks.begin(), itr_end = di->PhysicalDisks.end();
         itr != itr_end; ++itr)
     {
@@ -721,7 +755,7 @@ Container_CloneImpl_s02::Container_CloneImpl_s02( FrameImpl* _frameimpl )
     DiskInfoPanel* panel = new DiskInfoPanel(sizer->GetContainingWindow(), this);
     panel->SetSelectionMode(DISK_PANEL_SELECTION_DISK);
 
-    shared_ptr<DiskInfo> di = frame_impl->GetDiskInfo();
+    shared_ptr<DiskInfo> di = frame_impl->Holder()->disk_info;
     for(std::map<DWORD, shared_ptr<PhysicalDiskInfo>>::iterator itr=di->PhysicalDisks.begin(), itr_end = di->PhysicalDisks.end();
         itr != itr_end; ++itr)
     {
@@ -788,7 +822,8 @@ Container_CloneImpl_s03::Container_CloneImpl_s03( FrameImpl* _frameimpl )
 
     m_prevnext->GetButtonNext()->Bind(myEVT_SimpleButtonClicked, &Container_CloneImpl_s03::OnClickNextButton, this);
     
-    clone = new CloneWorker(this, &frame_impl->Holder()->clone_data, frame_impl->GetDiskInfo());
+    shared_ptr<DiskInfo> di = frame_impl->Holder()->disk_info;
+    clone = new CloneWorker(this, &frame_impl->Holder()->clone_data, di);
     clone->Run();
 }
 
@@ -1088,7 +1123,7 @@ Container_BackupImpl::Container_BackupImpl( FrameImpl* _frameimpl )
     DiskInfoPanel* panel = new DiskInfoPanel(sizer->GetContainingWindow(), this);
     panel->SetSelectionMode(DISK_PANEL_SELECTION_DISK);
 
-    shared_ptr<DiskInfo> di = frame_impl->GetDiskInfo();
+    shared_ptr<DiskInfo> di = frame_impl->Holder()->disk_info;
     for(std::map<DWORD, shared_ptr<PhysicalDiskInfo>>::iterator itr=di->PhysicalDisks.begin(), itr_end = di->PhysicalDisks.end();
         itr != itr_end; ++itr)
     {
@@ -1160,7 +1195,7 @@ Container_BackupImpl_s01::Container_BackupImpl_s01( FrameImpl* _frameimpl )
     m_prevnext->SetEnabledPrev(true);
     m_prevnext->SetEnabledNext(false);
 
-    shared_ptr<DiskInfo> di = frame_impl->GetDiskInfo();
+    shared_ptr<DiskInfo> di = frame_impl->Holder()->disk_info;
     if(di->PhysicalDisks[frame_impl->Holder()->backup_data.disk_number]->DiskSize > 2199023255552ULL/*2TB*/)
       m_customControl71->SetPaused(true);
 }
@@ -1373,7 +1408,8 @@ Container_BackupImpl_s03::Container_BackupImpl_s03( FrameImpl* _frameimpl )
 
     m_prevnext->GetButtonNext()->Bind(myEVT_SimpleButtonClicked, &Container_BackupImpl_s03::OnClickNextButton, this);
 
-    backup = new BackupWorker(this, &frame_impl->Holder()->backup_data, frame_impl->GetDiskInfo());
+    shared_ptr<DiskInfo> di = frame_impl->Holder()->disk_info;
+    backup = new BackupWorker(this, &frame_impl->Holder()->backup_data, di);
     backup->Run();
 }
 

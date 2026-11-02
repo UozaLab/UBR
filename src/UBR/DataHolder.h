@@ -20,8 +20,10 @@
 
 #include <wx/wx.h>
 #include <vector>
+#include "smart_ptr.h"
 #include "Widgets/DiskPanelImpl.h"
 #include "FileSystem/VDisk.h"
+#include "FileSystem/DiskInfo.h"
 
 class RestoreData
 {
@@ -110,6 +112,7 @@ public:
     CloneData clone_data;
     BackupData backup_data;
     CompressData compress_data;
+    shared_ptr<DiskInfo> disk_info;
 };
 
 #endif

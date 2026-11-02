@@ -54,6 +54,7 @@ class BaseFrame : public wxFrame
 		SimpleButton* m_customControl4;
 		SimpleButton* m_customControl5;
 		wxPanel* m_panel33;
+		wxStaticBitmap* m_bitmap2;
 		wxStaticBitmap* m_bitmap1;
 		wxChoice* m_choice1;
 		wxPanel* m_panel_line;
@@ -61,7 +62,8 @@ class BaseFrame : public wxFrame
 
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnClose( wxCloseEvent& event ) { event.Skip(); }
-		virtual void OnLeftDown( wxMouseEvent& event ) { event.Skip(); }
+		virtual void OnReloadDown( wxMouseEvent& event ) { event.Skip(); }
+		virtual void OnGlobeDown( wxMouseEvent& event ) { event.Skip(); }
 		virtual void OnChoice( wxCommandEvent& event ) { event.Skip(); }
 
 

@@ -35,7 +35,7 @@ using Microsoft::WRL::ComPtr;
     if(FAILED(hrInternal) && hrInternal != RPC_E_TOO_LATE)                \
     {                                                                     \
         tostringstream o;                                                 \
-        o << _T("ERROR[VSS] ") << string2tstring(#Call);                  \
+        o << _T("[UBR][ERR] ") << string2tstring(#Call);                  \
         o << " HRESULT(0x" << std::hex << hrInternal << ")" << std::endl; \
         OutputDebugString(o.str().c_str());                               \
         goto END;                                                         \

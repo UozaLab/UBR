@@ -101,7 +101,7 @@ void* CloneWorker::Entry()
     //
     {
     wxQueueEvent(event_handler, new MsgEvent("Creating a volume snapshot"));
-    shared_ptr<PhysicalVSS> src(new PhysicalVSS(clone_data->disk_number_src, di, 134217728/*128MB*/));
+    shared_ptr<PhysicalVSS> src(new PhysicalVSS(clone_data->disk_number_src, di, 33554432/*32MB*/));
     if(src->IsVssSnapshotCreated())
         wxQueueEvent(event_handler, new MsgEvent("Snapshot created"));
     else

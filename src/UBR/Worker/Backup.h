@@ -22,6 +22,7 @@
 #include "smart_ptr.h"
 #include "Events.h"
 #include "DataHolder.h"
+#include "Misc.h"
 #include "FileSystem/DiskInfo.h"
 #include "FileSystem/VDisk_vhd_common.h"
 #include "FileSystem/VDisk_vss.h"
@@ -33,9 +34,10 @@ class FileReader : public CustomThread
   protected:
     shared_ptr<PhysicalVSS> src;
     BackupWorker* worker;
+    ConditionVariable* cv;
 
   public:
-    FileReader(BackupWorker* _worker, shared_ptr<PhysicalVSS> _src);
+    FileReader(BackupWorker* _worker, ConditionVariable* _cv, shared_ptr<PhysicalVSS> _src);
     virtual void *Entry();
 };
 
@@ -46,9 +48,10 @@ class FileWriter : public CustomThread
     shared_ptr<VirtualDisk> dst;
     BackupWorker* worker;
     DWORD entry_count;
+    ConditionVariable* cv;
 
   public:
-    FileWriter(BackupWorker* _worker, shared_ptr<PhysicalVSS> _src, shared_ptr<VirtualDisk> _dst);
+    FileWriter(BackupWorker* _worker, ConditionVariable* _cv, shared_ptr<PhysicalVSS> _src, shared_ptr<VirtualDisk> _dst);
     virtual void *Entry();
 };
 

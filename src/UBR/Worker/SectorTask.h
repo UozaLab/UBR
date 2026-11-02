@@ -21,11 +21,62 @@
 #include <wx/wx.h>
 #include <vector>
 #include "Events.h"
+#include "Misc.h"
 #include "smart_ptr.h"
 #include "FileSystem/FsInfo.h"
 #include "FileSystem/Vdisk.h"
 #include "FileSystem/MbrGpt.h"
 
+struct Blockdata
+{
+    DWORD block_index;
+    UINT8* block_data;
+    bool can_skip;
+    bool updater_can_skip;
+};
+
+struct SyncControl
+{
+    bool blockdata_read_complete_success;
+    bool blockdata_read_end;
+    wxMutex mutex;
+    wxVector<Blockdata> blockdata_holder;
+    DISK_UPDATER updater;
+    shared_ptr<DiskUpdaterCollection> updater_collection;
+
+    bool show_progress;
+    UINT64 sector_processed_sum;
+    UINT64 sector_sum;
+    
+    SyncControl(DISK_UPDATER _updater, shared_ptr<DiskUpdaterCollection> _updater_collection);
+};
+
+class DiskReader : public CustomThread
+{
+  protected:
+    shared_ptr<VirtualDisk> src;
+    SyncControl* sync;
+    CustomThread* caller;
+    ConditionVariable* cv;
+
+  public:
+    DiskReader(CustomThread* _caller, SyncControl* _sync, ConditionVariable* _cv, shared_ptr<VirtualDisk> _src);
+    virtual void *Entry();
+};
+
+class DiskWriter : public CustomThread
+{
+  protected:
+    shared_ptr<VirtualDisk> src;
+    HANDLE handle_dest;
+    SyncControl* sync;
+    ConditionVariable* cv;
+    CustomThread* caller;
+
+  public:
+    DiskWriter(CustomThread* _caller, SyncControl* _sync, ConditionVariable* _cv, shared_ptr<VirtualDisk> _src, HANDLE _handle_dest);
+    virtual void *Entry();
+};
 
 class DiskUpdateTask
 {

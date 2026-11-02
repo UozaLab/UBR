@@ -18,6 +18,7 @@
 #ifndef __MISC__H__
 #define __MISC__H__
 
+#include <windows.h>
 #include "tstring.h"
 
 class Unit
@@ -31,6 +32,35 @@ class SystemEnvironment
 public:
     bool static RunOnPE();
     bool static RunAs32bit();
+};
+
+class ConditionVariable
+{
+protected:
+    HANDLE h;
+
+public:
+    ConditionVariable(bool manual = false, bool initial = false)
+    {
+        h = CreateEvent(NULL, manual ? TRUE : FALSE, initial ? TRUE : FALSE, NULL);
+    }
+    virtual ~ConditionVariable()
+    {
+        CloseHandle(h);
+    }
+    
+    DWORD Wait(DWORD timeout_ms = INFINITE)
+    {
+        return WaitForSingleObject(h, timeout_ms);
+    }
+    void Set()
+    {
+        SetEvent(h);
+    }
+    void Reset()
+    {
+        ResetEvent(h);
+    }
 };
 
 #endif

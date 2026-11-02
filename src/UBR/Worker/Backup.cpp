@@ -30,15 +30,16 @@
 #include "MiscWx.h"
 #include <wx/wfstream.h>
 
-FileReader::FileReader(BackupWorker* _worker, shared_ptr<PhysicalVSS> _src)
-     : worker(_worker), CustomThread(nullptr), src(_src)
+FileReader::FileReader(BackupWorker* _worker, ConditionVariable* _cv, shared_ptr<PhysicalVSS> _src)
+     : worker(_worker), cv(_cv), CustomThread(nullptr), src(_src)
 {
 }
 
 void * FileReader::Entry()
 {
     SetStateStart();
-    const int MAX_BLOCK_COUNT = 402653184/*384MB*/ / src->GetBlockSize();
+    int max_block_count = 402653184/*384MB*/ / src->GetBlockSize();
+    const int MAX_BLOCK_COUNT = (max_block_count < 100) ? max_block_count : 100;
 
     DWORD entry_count = src->GetTableEntriesCount();
 
@@ -48,7 +49,7 @@ void * FileReader::Entry()
         if(src->CanSkip(i)) continue;
         DWORD ByteRead;
         bool can_skip;
-        wxVector<UINT8*>::size_type block_count = 0;
+        wxVector<std::pair<DWORD, UINT8*> >::size_type block_count = 0;
         {
             wxMutexLocker locker(worker->mutex);
             block_count = worker->blockdata_holder.size();
@@ -59,7 +60,7 @@ void * FileReader::Entry()
                 wxMutexLocker locker(worker->mutex);
                 block_count = worker->blockdata_holder.size();
             }
-            Sleep(1000);
+            Sleep(100);
             if(TerminateRequired()) goto END;
         }
 
@@ -76,6 +77,7 @@ void * FileReader::Entry()
             wxMutexLocker locker(worker->mutex);
             worker->blockdata_holder.push_back(std::make_pair(i, blockdata));
         }
+        cv->Set();
     }
 
     {
@@ -93,8 +95,8 @@ END:
     return NULL;
 }
 
-FileWriter::FileWriter(BackupWorker* _worker, shared_ptr<PhysicalVSS> _src, shared_ptr<VirtualDisk> _dst)
-     : worker(_worker), CustomThread(nullptr), src(_src), dst(_dst)
+FileWriter::FileWriter(BackupWorker* _worker, ConditionVariable* _cv, shared_ptr<PhysicalVSS> _src, shared_ptr<VirtualDisk> _dst)
+     : worker(_worker), cv(_cv), CustomThread(nullptr), src(_src), dst(_dst)
 {
 }
 
@@ -113,7 +115,7 @@ void * FileWriter::Entry()
             wxQueueEvent(worker->EventHandler(), new ProgressEvent(progress_double));
         }
         
-        wxVector<UINT8*>::size_type block_count = 0;
+        wxVector<std::pair<DWORD, UINT8*> >::size_type block_count = 0;
         bool read_complete = false;
         {
             wxMutexLocker locker(worker->mutex);
@@ -125,7 +127,7 @@ void * FileWriter::Entry()
         {
             if(TerminateRequired()) goto END;
             if(read_complete) goto END;
-            Sleep(1000);
+            cv->Wait(500);
             continue;
         }
 
@@ -220,8 +222,9 @@ void* BackupWorker::Entry()
                                  : backup_data->filetype == FILE_TYPE_VHD ? (VirtualDisk*) new VHD_VSS(out_stream, src)
                                  : (VirtualDisk*) new RAW_VSS(out_stream, src));
 
-    FileReader reader(this, src);
-    FileWriter writer(this, src, dest);
+    ConditionVariable cv;
+    FileReader reader(this, &cv, src);
+    FileWriter writer(this, &cv, src, dest);
     reader.Run();
     writer.Run();
 

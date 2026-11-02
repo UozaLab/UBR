@@ -33,12 +33,12 @@ void* CompressWorker::Entry()
 {
     SetStateStart();
 
-    const int buff_size = 1024*1024;
+    const int buff_size = 1024*1024*100;
     UINT8* buff = new UINT8[buff_size];
 
     wxFileName src_path(compress_data->src_path);
     wxFileName dst_path(compress_data->dst_path);
-    unsigned long long src_size = src_path.GetSize().ToULong();
+    unsigned long long src_size = src_path.GetSize().GetValue();
     unsigned long long dst_size = 0;
     unsigned long long sum_bytes = 0;
     int progress = 0;
@@ -76,7 +76,7 @@ void* CompressWorker::Entry()
 
     wxQueueEvent(event_handler, new ProgressEvent(100.));
     out_stream.Close();
-    dst_size = dst_path.GetSize().ToULong();
+    dst_size = dst_path.GetSize().GetValue();
     wxQueueEvent(event_handler, new MsgEvent(wxString::Format("Result : %s ==> %s", Unit::HumanReadable(src_size), Unit::HumanReadable(dst_size))));
 
     wxQueueEvent(event_handler, new MsgEvent(ttt("FinishMsg"), wxColour(0, 0, 255)));

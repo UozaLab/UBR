@@ -29,8 +29,7 @@
 #include "Worker/Events.h"
 #include "Worker/Compress.h"
 #include "Worker/Decompress.h"
-#include "FileSystem/PhysicalDiskInfo.h"
-#include "FileSystem/DiskInfo.h"
+#include "Worker/Initialize.h"
 
 class ProgressHandler
 {
@@ -54,16 +53,15 @@ public:
 
 class FrameImpl : public BaseFrame
 {
-    protected:
+  protected:
         DataHolder dataholder;
-        shared_ptr<DiskInfo> di;
+        InitializeWorker* initialize;
         void init_language();
         void deselect_all(const SimpleButton* except = NULL);
 
   public:
 		FrameImpl();
         DataHolder* Holder() { return  &dataholder; }
-        shared_ptr<DiskInfo> GetDiskInfo() { return di; }
 
         void PauseButtons(bool pause);
 
@@ -75,8 +73,10 @@ class FrameImpl : public BaseFrame
 
 		void OnClose( wxCloseEvent& event );
         void OnChoice( wxCommandEvent& event );
-        void OnLeftDown( wxMouseEvent& event );
+        void OnGlobeDown( wxMouseEvent& event );
+        void OnReloadDown( wxMouseEvent& event );
 
+        void OnThreadEvent(wxThreadEvent& event);
 };
 
 

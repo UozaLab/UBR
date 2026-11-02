@@ -88,7 +88,7 @@ DWORD Physical::GetBlockSize()
         power++;
     }
     power--;
-    return 1U << ((power < 27) ? power : 27);// 2^27=128MB
+    return 1U << ((power < 25) ? power : 25);// 2^25=32MB
 }
 
 DWORD Physical::GetTableEntriesCount()

@@ -56,6 +56,7 @@ class LZ4InputStream : public wxInputStream
     LZ4InputStream(wxInputStream* _stream);
     virtual ~LZ4InputStream();
     wxFileOffset GetLength() const wxOVERRIDE;
+    wxInputStream* BaseStream() { return stream; }
 };
 
 class LZ4InputSeekableStream : public LZ4InputStream
@@ -89,6 +90,7 @@ class LZ4OutputStream : public wxOutputStream
     virtual ~LZ4OutputStream();
     virtual wxFileOffset GetLength() const wxOVERRIDE { return (wxFileOffset) current_pos; }
     bool Close() wxOVERRIDE;
+    wxOutputStream* BaseStream() { return stream; }
 };
 
 #endif

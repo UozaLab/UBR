@@ -1,3 +1,9 @@
+0.0.5 (2026.11.02)
+    add a reload button
+    improve clone and restore speed
+    improve progress bar behavior when decompressing
+    fix type casting mistakes in compressing and decompressing
+
 0.0.4 (2026.10.08)
     add file compression/decompression to Tools
 
