@@ -31,8 +31,8 @@ DiskReader::DiskReader(CustomThread* _caller, SyncControl* _sync, ConditionVaria
 {
 }
 
-DiskWriter::DiskWriter(CustomThread* _caller, SyncControl* _sync, ConditionVariable* _cv, shared_ptr<VirtualDisk> _src, HANDLE _handle_dest)
-     : CustomThread(nullptr), caller(_caller), sync(_sync), cv(_cv), src(_src), handle_dest(_handle_dest)
+DiskWriter::DiskWriter(CustomThread* _caller, SyncControl* _sync, ConditionVariable* _cv, shared_ptr<VirtualDisk> _src, HANDLE _handle_dest, LONGLONG _shift_bytes)
+     : CustomThread(nullptr), caller(_caller), sync(_sync), cv(_cv), src(_src), handle_dest(_handle_dest), shift_bytes(_shift_bytes)
 {
 }
 
@@ -253,6 +253,7 @@ void* DiskWriter::Entry()
             DWORD ByteWrite;
             filepointer.QuadPart = write_sector_addr;
             filepointer.QuadPart *= sector_size;
+            filepointer.QuadPart += shift_bytes;
             SetFilePointerEx(handle_dest, filepointer, NULL, FILE_BEGIN);
             if(!WriteFile(handle_dest, buff_to_write, sectors_to_write * sector_size, &ByteWrite, 0))
             {
@@ -425,8 +426,11 @@ void DiskUpdateTask::UpdateCrc(CustomThread* thread, wxEvtHandler* event_handler
 }
 
 
-void DiskUpdateTask::Update(CustomThread* thread, wxEvtHandler* event_handler, shared_ptr<VirtualDisk> src, HANDLE handle_dest, shared_ptr<DiskUpdaterCollection> updater_collection, bool show_progress)
+void DiskUpdateTask::Update(CustomThread* thread, wxEvtHandler* event_handler, shared_ptr<VirtualDisk> src, HANDLE handle_dest, shared_ptr<DiskUpdaterCollection> updater_collection, bool show_progress, LONGLONG shift_bytes)
 {
+    if(shift_bytes != 0)
+      wxQueueEvent(event_handler, new MsgEvent(wxString::Format("ShiftMode : %lld", shift_bytes)));
+
     int progress = 0;
     UINT64 sector_sum = 0;
     UINT64 sector_processed_sum = 0;
@@ -482,7 +486,7 @@ void DiskUpdateTask::Update(CustomThread* thread, wxEvtHandler* event_handler, s
         sync.sector_processed_sum = sector_processed_sum;
         ConditionVariable cv;
         DiskReader reader(thread, &sync, &cv, src);
-        DiskWriter writer(thread, &sync, &cv, src, handle_dest);
+        DiskWriter writer(thread, &sync, &cv, src, handle_dest, shift_bytes);
         reader.Run();
         writer.Run();
 

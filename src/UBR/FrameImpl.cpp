@@ -198,7 +198,12 @@ FrameImpl::FrameImpl()
     }
     if(num_files == 0)
     {
-        m_choice1->Enable(false);
+        std::map<wxString, int>* id_map = MultiLanguage::Instance()->GetLangMap();
+        for(std::map<wxString, int>::iterator itr = id_map->begin(), itr_end = id_map->end();
+            itr != itr_end; itr++)
+        {
+            m_choice1->Append(itr->first);
+        }
     }
     m_bitmap1->SetSize(16, 16);
     m_bitmap2->SetSize(16, 16);
@@ -364,67 +369,11 @@ void FrameImpl::deselect_all(const SimpleButton* except)
 Container_HomeImpl::Container_HomeImpl( FrameImpl* _frameimpl)
 : Container_Home( nullptr ), ContainerCommon(_frameimpl)
 {
-    Utility::SetIcon(m_bpButton1, IDB_PNG15);
-    m_bpButton1->SetBackgroundColour(wxColour(255,255,255));
-
     wxString version = Utility::GetVersion();
     wxString newline("\r\n");
     wxString newline2 = newline + newline;
-    wxString implemented = wxString(" implemented ");
-    wxString not_implemented = wxString(" not implemented yet ");
     m_textCtrl2->SetLabel(newline + ttt("Description") + newline2 + _T("https://github.com/UozaLab/UBR") + newline);
     m_staticText81->SetLabel(wxString::Format("UBR %s", version));
-    m_grid1->DeleteRows(0, m_grid1->GetNumberRows());
-
-    struct GridData
-    {
-        wxColor CellColor;
-        wxColor ForeColor;
-        wxString Comment;
-        wxString Implemented;
-        GridData(wxColor cell_color, wxString comment, wxColor fore_color, wxString implemented)
-            : CellColor(cell_color), Comment(comment), ForeColor(fore_color), Implemented(implemented)
-        {}
-    };
-    GridData gd[] = 
-    {
-        GridData(wxColour(0x59, 0x59, 0x59), wxEmptyString, wxColour(0xFF, 0xFF, 0xFF), wxEmptyString),
-        GridData(wxColour(0xB8, 0xCC, 0xE4), wxString("Backup / Recovery"), wxColour(0x00, 0x00, 0x00), wxEmptyString),
-        GridData(wxColour(0xDC, 0xE6, 0xF1), wxString("  Disk backup"), wxColour(0x00, 0x00, 0x00), implemented),
-        GridData(wxColour(0xDC, 0xE6, 0xF1), wxString("  Partition backup"), wxColour(0x00, 0x00, 0x00), not_implemented),
-        GridData(wxColour(0xDC, 0xE6, 0xF1), wxString("  Disk restore"), wxColour(0x00, 0x00, 0x00), implemented),
-        GridData(wxColour(0xDC, 0xE6, 0xF1), wxString("  Partition restore"), wxColour(0x00, 0x00, 0x00), not_implemented),
-        GridData(wxColour(0xDC, 0xE6, 0xF1), wxString("  Restore to a smaller disk"), wxColour(0x00, 0x00, 0x00), implemented),
-        GridData(wxColour(0xDC, 0xE6, 0xF1), wxString("  Clone"), wxColour(0x00, 0x00, 0x00), implemented),
-        GridData(wxColour(0xDC, 0xE6, 0xF1), wxString("  VSS"), wxColour(0x00, 0x00, 0x00), implemented),
-        GridData(wxColour(0xB8, 0xCC, 0xE4), wxString("Tools"), wxColour(0x00, 0x00, 0x00), wxEmptyString),
-        GridData(wxColour(0xDC, 0xE6, 0xF1), wxString("  Recovery boot media creation"), wxColour(0x00, 0x00, 0x00), implemented),
-        GridData(wxColour(0xDC, 0xE6, 0xF1), wxString("  PXE boot support"), wxColour(0x00, 0x00, 0x00), not_implemented),
-    };
-    int count = sizeof(gd) / sizeof(GridData);
-    m_grid1->AppendRows(count + 1);
-    for(int row = 0; row < count; row++)
-    {
-        m_grid1->SetCellBackgroundColour(row, 0, gd[row].CellColor);
-        m_grid1->SetCellBackgroundColour(row, 1, gd[row].CellColor);
-        m_grid1->SetCellBackgroundColour(row, 2, gd[row].CellColor);
-        m_grid1->SetCellTextColour(row, 0, gd[row].ForeColor);
-        if(gd[row].Implemented == implemented)
-            m_grid1->SetCellTextColour(row, 1, wxColour(0x00, 0x00, 0xFF));
-        else 
-            m_grid1->SetCellTextColour(row, 1, gd[row].ForeColor);
-        m_grid1->SetCellValue(row, 0, gd[row].Comment);
-        m_grid1->SetCellValue(row, 1, gd[row].Implemented);
-    }
-    m_grid1->SetCellValue(0, 1, wxString::Format(" Version %s", version));
-
-    m_grid1->SetCellBackgroundColour(count, 0, wxColour(0xDC, 0xE6, 0xF1));
-    m_grid1->SetCellBackgroundColour(count, 1, wxColour(0xDC, 0xE6, 0xF1));
-    m_grid1->SetCellBackgroundColour(count, 2, wxColour(0xDC, 0xE6, 0xF1));
-
-    m_grid1->AutoSizeColumn(0);
-    m_grid1->AutoSizeColumn(1);
-    m_grid1->Show(false);
 }
 
 void Container_HomeImpl::OnClose( wxCloseEvent& event )
@@ -432,55 +381,99 @@ void Container_HomeImpl::OnClose( wxCloseEvent& event )
     Destroy();
 }
 
-void Container_HomeImpl::OnPPButtonClick( wxCommandEvent& event )
-{
-    if(m_grid1->IsShown())
-    {
-        Utility::SetIcon(m_bpButton1, IDB_PNG15);
-        m_grid1->Show(false);
-    }
-    else
-    {
-        Utility::SetIcon(m_bpButton1, IDB_PNG14);
-        m_grid1->Show(true);
-    }
-    wxSizer* sizer = m_grid1->GetContainingSizer();
-    sizer->Layout();
-}
-
-void Container_HomeImpl::OnPPLeftDown( wxMouseEvent& event )
-{
-    wxCommandEvent evt;
-    OnPPButtonClick(evt);
-}
 //
 // Container_RestoreImpl
 //
 Container_RestoreImpl::Container_RestoreImpl( FrameImpl* _frameimpl )
 : Container_Restore( nullptr ), ContainerCommon(_frameimpl)
 {
-    m_prevnext->GetButtonPrev()->Bind(myEVT_SimpleButtonClicked, &Container_RestoreImpl::OnClickPrevButton, this);
-    m_prevnext->GetButtonNext()->Bind(myEVT_SimpleButtonClicked, &Container_RestoreImpl::OnClickNextButton, this);
-
-    m_staticText8->Show(false);
-    m_staticText8->SetLabel(ttt("ClickNextToProceed"));
+    frame_impl->Holder()->restore_data.Clear();
     m_staticText81->SetLabel(ttt("Title_Restore"));
-    Utility::SetIcon(m_customControl61, IDB_PNG9, ttt("SelectFileToRestore"));
-    m_customControl61->SetFrameMode(true);
-    m_customControl61->SetNormalColour(COLOR_BUTTON_FACE_FRAME);
-    m_customControl61->Bind( myEVT_SimpleButtonClicked, &Container_RestoreImpl::OnClickButton, this);
-}
 
+    Utility::SetIcon(m_customControl61, IDB_PNG6, ttt("DiskRestoreBtnTitle"));
+    m_customControl61->SetDescription(ttt("DiskRestoreDesc"));
+    Utility::SetIcon(m_customControl71, IDB_PNG23, ttt("PartRestoreBtnTitle"));
+    m_customControl71->SetDescription(ttt("PartRestoreDesc"));
+    Utility::SetIcon(m_customControl81, IDB_PNG25, ttt("BootRestoreBtnTitle"));
+    m_customControl81->SetDescription(ttt("BootRestoreDesc"));
+    m_customControl61->SetFrameMode(true);
+    m_customControl71->SetFrameMode(true);
+    m_customControl81->SetFrameMode(true);
+    m_customControl61->SetNormalColour(COLOR_BUTTON_FACE_FRAME);
+    m_customControl71->SetNormalColour(COLOR_BUTTON_FACE_FRAME);
+    m_customControl81->SetNormalColour(COLOR_BUTTON_FACE_FRAME);
+    m_customControl61->Bind( myEVT_SimpleButtonClicked, &Container_RestoreImpl::OnClickDiskRestoreButton, this);
+    m_customControl71->Bind( myEVT_SimpleButtonClicked, &Container_RestoreImpl::OnClickPartRestoreButton, this);
+    m_customControl81->Bind( myEVT_SimpleButtonClicked, &Container_RestoreImpl::OnClickPartRestore2Button, this);
+
+}
 void Container_RestoreImpl::OnClose( wxCloseEvent& event ) 
 {
-    m_customControl61->Unbind( myEVT_SimpleButtonClicked, &Container_RestoreImpl::OnClickButton, this);
-    m_prevnext->GetButtonPrev()->Unbind(myEVT_SimpleButtonClicked, &Container_RestoreImpl::OnClickPrevButton, this);
-    m_prevnext->GetButtonNext()->Unbind(myEVT_SimpleButtonClicked, &Container_RestoreImpl::OnClickNextButton, this);
+    m_customControl61->Unbind( myEVT_SimpleButtonClicked, &Container_RestoreImpl::OnClickDiskRestoreButton, this);
+    m_customControl71->Unbind( myEVT_SimpleButtonClicked, &Container_RestoreImpl::OnClickPartRestoreButton, this);
+    m_customControl81->Unbind( myEVT_SimpleButtonClicked, &Container_RestoreImpl::OnClickPartRestore2Button, this);
     Destroy();
 }
 
-void Container_RestoreImpl::OnClickPrevButton( wxCommandEvent& event )
+void Container_RestoreImpl::OnClickDiskRestoreButton( wxCommandEvent& event )
 {
+    frame_impl->Holder()->restore_data.mode = RESTORE_DISK;
+    Container_Util::SetNewframe(new Container_RestoreImpl_s00(frame_impl));
+}
+void Container_RestoreImpl::OnClickPartRestoreButton( wxCommandEvent& event )
+{
+    frame_impl->Holder()->restore_data.mode = RESTORE_PART;
+    Container_Util::SetNewframe(new Container_RestoreImpl_s00(frame_impl));
+}
+void Container_RestoreImpl::OnClickPartRestore2Button( wxCommandEvent& event )
+{
+    frame_impl->Holder()->restore_data.mode = RESTORE_BOOT;
+    Container_Util::SetNewframe(new Container_RestoreImpl_s00(frame_impl));
+}
+
+
+//
+// Container_RestoreImpl_s00
+//
+Container_RestoreImpl_s00::Container_RestoreImpl_s00( FrameImpl* _frameimpl )
+: Container_Restore_s00( nullptr ), ContainerCommon(_frameimpl), file_selected(false)
+{
+    m_prevnext->GetButtonPrev()->Bind(myEVT_SimpleButtonClicked, &Container_RestoreImpl_s00::OnClickPrevButton, this);
+    m_prevnext->GetButtonNext()->Bind(myEVT_SimpleButtonClicked, &Container_RestoreImpl_s00::OnClickNextButton, this);
+
+    m_staticText8->Show(false);
+    m_staticText8->SetLabel(ttt("ClickNextToProceed"));
+    if(frame_impl->Holder()->restore_data.mode == RESTORE_DISK)
+      m_staticText81->SetLabel(ttt("Title_Restore_s00"));
+    else if(frame_impl->Holder()->restore_data.mode == RESTORE_PART)
+      m_staticText81->SetLabel(ttt("Title_Restore_s00_part"));
+    else if(frame_impl->Holder()->restore_data.mode == RESTORE_BOOT)
+      m_staticText81->SetLabel(ttt("Title_Restore_s00_boot"));
+    Utility::SetIcon(m_customControl61, IDB_PNG9, ttt("SelectFileToRestore"));
+    m_customControl61->SetFrameMode(true);
+    m_customControl61->SetNormalColour(COLOR_BUTTON_FACE_FRAME);
+    m_customControl61->Bind( myEVT_SimpleButtonClicked, &Container_RestoreImpl_s00::OnClickButton, this);
+    m_prevnext->SetEnabledPrev(true);
+    Bind(myEVT_SelectDisk, &Container_RestoreImpl_s00::OnSelectDisk, this);
+}
+
+void Container_RestoreImpl_s00::OnClose( wxCloseEvent& event ) 
+{
+    Unbind(myEVT_SelectDisk, &Container_RestoreImpl_s00::OnSelectDisk, this);
+    m_customControl61->Unbind( myEVT_SimpleButtonClicked, &Container_RestoreImpl_s00::OnClickButton, this);
+    m_prevnext->GetButtonPrev()->Unbind(myEVT_SimpleButtonClicked, &Container_RestoreImpl_s00::OnClickPrevButton, this);
+    m_prevnext->GetButtonNext()->Unbind(myEVT_SimpleButtonClicked, &Container_RestoreImpl_s00::OnClickNextButton, this);
+    Destroy();
+}
+
+void Container_RestoreImpl_s00::OnClickPrevButton( wxCommandEvent& event )
+{
+    if(!file_selected)
+    {
+        Container_Util::SetNewframe(new Container_RestoreImpl(frame_impl));
+        return;
+    }
+    
     m_staticText7->SetLabel("");
     m_staticText8->Show(false);
     wxWindow* win = m_customControl61;
@@ -496,15 +489,22 @@ void Container_RestoreImpl::OnClickPrevButton( wxCommandEvent& event )
     m_customControl61->Show(true);
     sizer->Layout();
     m_prevnext->SetEnabledNext(false);
-    m_prevnext->SetEnabledPrev(false);
+    file_selected = false;
+    if(frame_impl->Holder()->restore_data.mode == RESTORE_DISK)
+      m_staticText81->SetLabel(ttt("Title_Restore_s00"));
+    else if(frame_impl->Holder()->restore_data.mode == RESTORE_PART)
+      m_staticText81->SetLabel(ttt("Title_Restore_s00_part"));
+    else if(frame_impl->Holder()->restore_data.mode == RESTORE_BOOT)
+      m_staticText81->SetLabel(ttt("Title_Restore_s00_boot"));
+
 }
 
-void Container_RestoreImpl::OnClickNextButton( wxCommandEvent& event )
+void Container_RestoreImpl_s00::OnClickNextButton( wxCommandEvent& event )
 {
     Container_Util::SetNewframe(new Container_RestoreImpl_s01(frame_impl));
 }
 
-void Container_RestoreImpl::OnClickButton( wxCommandEvent& event )
+void Container_RestoreImpl_s00::OnClickButton( wxCommandEvent& event )
 {
     wxObject* caller = event.GetEventObject();
     wxWindow* win = dynamic_cast<wxWindow*>(caller);
@@ -525,21 +525,52 @@ void Container_RestoreImpl::OnClickButton( wxCommandEvent& event )
         return;
     }
     m_staticText7->SetLabel(filepath + " [" + vdisk->GetFileFormat() + "]");
-    m_staticText81->SetLabel(ttt("Title_Restore_1"));
 
     shared_ptr<PhysicalDiskInfo> pd = ForensicAnalysis::CreateDiskInfo(vdisk);
     wxSizer* sizer = win->GetContainingSizer();
 
     sizer->Insert(2, 10, 2, 0, wxBOTTOM);
     DiskInfoPanel* panel = new DiskInfoPanel(sizer->GetContainingWindow(), this);
+    if(frame_impl->Holder()->restore_data.mode == RESTORE_DISK)
+    {
+        m_staticText81->SetLabel(ttt("Title_Restore_1"));
+    }
+    else if(frame_impl->Holder()->restore_data.mode == RESTORE_PART)
+    {
+        m_staticText81->SetLabel(ttt("Title_Restore_1_part"));
+        panel->SetSelectionMode(DISK_PANEL_SELECTION_PARTITION);
+    }
+    else
+    {
+        m_staticText81->SetLabel(ttt("Title_Restore_1_boot"));
+    }
     panel->AddDisk(pd, false);
     sizer->Insert(3, panel, 0, wxEXPAND |wxRIGHT|wxLEFT)->SetBorder(12);
 
     m_customControl61->Show(false);
-    m_prevnext->SetEnabledNext(true);
+    if(frame_impl->Holder()->restore_data.mode == RESTORE_DISK ||
+       frame_impl->Holder()->restore_data.mode == RESTORE_BOOT)
+    {
+        m_prevnext->SetEnabledNext(true);
+        m_staticText8->Show(true);
+    }
     m_prevnext->SetEnabledPrev(true);
-    m_staticText8->Show(true);
     Container_Util::SetFrameLayout(panel);
+    file_selected = true;
+}
+
+void Container_RestoreImpl_s00::OnSelectDisk(wxCommandEvent& event)
+{
+    SelectionData* sd = dynamic_cast<SelectionData*>(event.GetEventObject());
+    if(sd == NULL) return;
+
+    frame_impl->Holder()->restore_data.partition_numbers_src = sd->partition_numbers;
+    if(frame_impl->Holder()->restore_data.partition_numbers_src.size() != 0)
+    {
+        m_staticText8->Show(true);
+        m_prevnext->SetEnabledNext(true);
+        Container_Util::SetFrameLayout(m_staticText8);
+    }
 }
 
 //
@@ -550,7 +581,21 @@ Container_RestoreImpl_s01::Container_RestoreImpl_s01( FrameImpl* _frameimpl )
 {
     wxSizer* sizer = m_panel171->GetSizer();
     DiskInfoPanel* panel = new DiskInfoPanel(sizer->GetContainingWindow(), this);
-    panel->SetSelectionMode(DISK_PANEL_SELECTION_DISK);
+    if(frame_impl->Holder()->restore_data.mode == RESTORE_DISK)
+    {
+        panel->SetSelectionMode(DISK_PANEL_SELECTION_DISK);
+        m_staticText81->SetLabel(ttt("Title_Restore_s01"));
+    }
+    else if(frame_impl->Holder()->restore_data.mode == RESTORE_PART)
+    {
+        panel->SetSelectionMode(DISK_PANEL_SELECTION_PARTITION);
+        m_staticText81->SetLabel(ttt("Title_Restore_s01_part"));
+    }
+    else
+    {
+        panel->SetSelectionMode(DISK_PANEL_SELECTION_DISK);
+        m_staticText81->SetLabel(ttt("Title_Restore_s01_boot"));
+    }
 
     shared_ptr<DiskInfo> di = frame_impl->Holder()->disk_info;
     for(std::map<DWORD, shared_ptr<PhysicalDiskInfo>>::iterator itr=di->PhysicalDisks.begin(), itr_end = di->PhysicalDisks.end();
@@ -565,7 +610,6 @@ Container_RestoreImpl_s01::Container_RestoreImpl_s01( FrameImpl* _frameimpl )
     m_prevnext->GetButtonPrev()->Bind(myEVT_SimpleButtonClicked, &Container_RestoreImpl_s01::OnClickPrevButton, this);
     m_prevnext->GetButtonNext()->Bind(myEVT_SimpleButtonClicked, &Container_RestoreImpl_s01::OnClickNextButton, this);
 
-    m_staticText81->SetLabel(ttt("Title_Restore_s01"));
     m_prevnext->SetEnabledPrev(true);
     m_prevnext->SetTextNext(ttt("StartRestoreBtnText"));
     m_prevnext->SetEnhanceNext(true);
@@ -587,15 +631,18 @@ void Container_RestoreImpl_s01::OnSelectDisk(wxCommandEvent& event)
     if(sd == NULL) return;
 
     frame_impl->Holder()->restore_data.disk_number = sd->disk_number;
-    frame_impl->Holder()->restore_data.mode = sd->mode;
-    frame_impl->Holder()->restore_data.partition_numbers = sd->partition_numbers;
-
-    m_prevnext->SetEnabledNext(true);
+    frame_impl->Holder()->restore_data.partition_numbers_dst = sd->partition_numbers;
+    if(frame_impl->Holder()->restore_data.mode == RESTORE_DISK ||
+       frame_impl->Holder()->restore_data.mode == RESTORE_BOOT ||
+       frame_impl->Holder()->restore_data.partition_numbers_dst.size() != 0)
+    {
+        m_prevnext->SetEnabledNext(true);
+    }
 }
 
 void Container_RestoreImpl_s01::OnClickPrevButton( wxCommandEvent& event )
 {
-    Container_Util::SetNewframe(new Container_RestoreImpl(frame_impl));
+    Container_Util::SetNewframe(new Container_RestoreImpl_s00(frame_impl));
 }
 void Container_RestoreImpl_s01::OnClickNextButton( wxCommandEvent& event )
 {
@@ -1119,9 +1166,50 @@ Container_BackupImpl::Container_BackupImpl( FrameImpl* _frameimpl )
     frame_impl->Holder()->backup_data.Clear();
     m_staticText81->SetLabel(ttt("Title_Backup"));
 
+    Utility::SetIcon(m_customControl61, IDB_PNG24, ttt("DiskBackupBtnTitle"));
+    m_customControl61->SetDescription(ttt("DiskBackupDesc"));
+    Utility::SetIcon(m_customControl71, IDB_PNG23, ttt("PartBackupBtnTitle"));
+    m_customControl71->SetDescription(ttt("PartBackupDesc"));
+    m_customControl61->SetFrameMode(true);
+    m_customControl71->SetFrameMode(true);
+    m_customControl61->SetNormalColour(COLOR_BUTTON_FACE_FRAME);
+    m_customControl71->SetNormalColour(COLOR_BUTTON_FACE_FRAME);
+    m_customControl61->Bind( myEVT_SimpleButtonClicked, &Container_BackupImpl::OnClickDiskBackupButton, this);
+    m_customControl71->Bind( myEVT_SimpleButtonClicked, &Container_BackupImpl::OnClickPartBackupButton, this);
+
+}
+
+void Container_BackupImpl::OnClose( wxCloseEvent& event )
+{
+    m_customControl61->Unbind( myEVT_SimpleButtonClicked, &Container_BackupImpl::OnClickDiskBackupButton, this);
+    m_customControl71->Unbind( myEVT_SimpleButtonClicked, &Container_BackupImpl::OnClickPartBackupButton, this);
+    Destroy();
+}
+
+void Container_BackupImpl::OnClickDiskBackupButton( wxCommandEvent& event )
+{
+    frame_impl->Holder()->backup_data.mode = DISK_PANEL_SELECTION_DISK;
+    Container_Util::SetNewframe(new Container_BackupImpl_s00(frame_impl));
+}
+
+void Container_BackupImpl::OnClickPartBackupButton( wxCommandEvent& event )
+{
+    frame_impl->Holder()->backup_data.mode = DISK_PANEL_SELECTION_PARTITION_MULTI;
+    Container_Util::SetNewframe(new Container_BackupImpl_s00(frame_impl));
+}
+
+//
+// Container_BackupImpl_s00
+//
+Container_BackupImpl_s00::Container_BackupImpl_s00( FrameImpl* _frameimpl )
+: Container_Backup_s00( nullptr ), ContainerCommon(_frameimpl)
+{
+    bool disk_backup = frame_impl->Holder()->backup_data.mode == DISK_PANEL_SELECTION_DISK;
+    m_staticText81->SetLabel(disk_backup ? ttt("Title_Backup_s00_disk") : ttt("Title_Backup_s00_part"));
+
     wxSizer* sizer = m_panel171->GetSizer();
     DiskInfoPanel* panel = new DiskInfoPanel(sizer->GetContainingWindow(), this);
-    panel->SetSelectionMode(DISK_PANEL_SELECTION_DISK);
+    panel->SetSelectionMode(frame_impl->Holder()->backup_data.mode);
 
     shared_ptr<DiskInfo> di = frame_impl->Holder()->disk_info;
     for(std::map<DWORD, shared_ptr<PhysicalDiskInfo>>::iterator itr=di->PhysicalDisks.begin(), itr_end = di->PhysicalDisks.end();
@@ -1131,41 +1219,65 @@ Container_BackupImpl::Container_BackupImpl( FrameImpl* _frameimpl )
     }
     sizer->Insert(0, panel, 0, wxEXPAND |wxRIGHT|wxLEFT|wxTOP)->SetBorder(12);
 
-    Bind(myEVT_SelectDisk, &Container_BackupImpl::OnSelectDisk, this);
-    m_prevnext->GetButtonNext()->Bind(myEVT_SimpleButtonClicked, &Container_BackupImpl::OnClickNextButton, this);
+    Bind(myEVT_SelectDisk, &Container_BackupImpl_s00::OnSelectDisk, this);
+    m_prevnext->GetButtonPrev()->Bind(myEVT_SimpleButtonClicked, &Container_BackupImpl_s00::OnClickPrevButton, this);
+    m_prevnext->GetButtonNext()->Bind(myEVT_SimpleButtonClicked, &Container_BackupImpl_s00::OnClickNextButton, this);
     
-    m_prevnext->SetEnabledPrev(false);
+    m_prevnext->SetEnabledPrev(true);
     m_prevnext->SetEnabledNext(false);
     m_staticText10->SetLabel(wxEmptyString);
     
     Container_Util::SetFrameLayout(panel);
 }
 
-void Container_BackupImpl::OnClose( wxCloseEvent& event )
+void Container_BackupImpl_s00::OnClose( wxCloseEvent& event )
 {
-    m_prevnext->GetButtonNext()->Unbind(myEVT_SimpleButtonClicked, &Container_BackupImpl::OnClickNextButton, this);
-    Unbind(myEVT_SelectDisk, &Container_BackupImpl::OnSelectDisk, this);
+    m_prevnext->GetButtonPrev()->Unbind(myEVT_SimpleButtonClicked, &Container_BackupImpl_s00::OnClickPrevButton, this);
+    m_prevnext->GetButtonNext()->Unbind(myEVT_SimpleButtonClicked, &Container_BackupImpl_s00::OnClickNextButton, this);
+    Unbind(myEVT_SelectDisk, &Container_BackupImpl_s00::OnSelectDisk, this);
     Destroy();
 }
 
-void Container_BackupImpl::OnSelectDisk(wxCommandEvent& event)
+void Container_BackupImpl_s00::OnSelectDisk(wxCommandEvent& event)
 {
+    bool disk_backup = frame_impl->Holder()->backup_data.mode == DISK_PANEL_SELECTION_DISK;
     SelectionData* sd = dynamic_cast<SelectionData*>(event.GetEventObject());
     if(sd == NULL) return;
+
+    frame_impl->Holder()->backup_data.disk_number = sd->disk_number;
+    frame_impl->Holder()->backup_data.partition_numbers_src = sd->partition_numbers;
+
+    if(disk_backup)
     {
-        frame_impl->Holder()->backup_data.disk_number = sd->disk_number;
-        frame_impl->Holder()->backup_data.mode = sd->mode;
-        frame_impl->Holder()->backup_data.partition_numbers_src = sd->partition_numbers;
+        m_prevnext->SetEnabledNext(true);
+        m_staticText10->SetLabel(ttt("ClickNextToProceed"));
     }
-    m_prevnext->SetEnabledNext(true);
-    m_staticText10->SetLabel(ttt("ClickNextToProceed"));
+    else
+    {
+        if(frame_impl->Holder()->backup_data.partition_numbers_src.size() == 0)
+        {
+            m_staticText10->SetLabel(_T(""));
+            m_prevnext->SetEnabledNext(false);
+        }
+        else
+        {
+            m_staticText10->SetLabel(ttt("ClickNextToProceed"));
+            m_prevnext->SetEnabledNext(true);
+        }
+    }
 
 }
 
-void Container_BackupImpl::OnClickNextButton( wxCommandEvent& event )
+void Container_BackupImpl_s00::OnClickNextButton( wxCommandEvent& event )
 {
     Container_Util::SetNewframe(new Container_BackupImpl_s01(frame_impl));
 }
+
+void Container_BackupImpl_s00::OnClickPrevButton( wxCommandEvent& event )
+{
+    Container_Util::SetNewframe(new Container_BackupImpl(frame_impl));
+}
+
 
 //
 // Container_BackupImpl_s01

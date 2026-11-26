@@ -25,21 +25,30 @@
 #include "FileSystem/VDisk.h"
 #include "FileSystem/DiskInfo.h"
 
+enum RestoreMode
+{
+    RESTORE_DISK,
+    RESTORE_PART,
+    RESTORE_BOOT
+};
+
 class RestoreData
 {
 public:
     void Clear()
     {
         filepath.Empty();
-        mode = DISK_PANEL_SELECTION_NOSELECTION;
+        mode = RESTORE_DISK;
         disk_number = 0;
-        partition_numbers.clear();
+        partition_numbers_src.clear();
+        partition_numbers_dst.clear();
     }
 public:
     wxString filepath;
-    DiskPanelSelectionMode mode;
+    RestoreMode mode;
     int disk_number;
-    std::vector<int> partition_numbers;
+    std::vector<int> partition_numbers_src;
+    std::vector<int> partition_numbers_dst;
 };
 
 class CloneData

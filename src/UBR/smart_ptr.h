@@ -24,13 +24,16 @@
 #if (_MSC_VER <= 1900) // Visual Studio 2015
 using std::tr1::shared_ptr;
 using std::tr1::enable_shared_from_this;
+using std::tr1::make_shared;
 #else
 using std::shared_ptr;
 using std::enable_shared_from_this;
+using std::make_shared;
 #endif
 #else
 using std::shared_ptr;
 using std::enable_shared_from_this;
+using std::make_shared;
 #endif
 
 #endif

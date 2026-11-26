@@ -28,9 +28,6 @@
 #include "Widgets/ProgressPanel.h"
 #include <wx/textctrl.h>
 #include "Widgets/PrevNextPanel.h"
-#include <wx/bmpbuttn.h>
-#include <wx/button.h>
-#include <wx/grid.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -117,15 +114,9 @@ class Container_Home : public wxFrame
 		wxPanel* m_panel171;
 		wxPanel* m_panel52;
 		wxTextCtrl* m_textCtrl2;
-		wxPanel* m_panel34;
-		wxBitmapButton* m_bpButton1;
-		wxStaticText* m_staticText11;
-		wxGrid* m_grid1;
 
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnClose( wxCloseEvent& event ) { event.Skip(); }
-		virtual void OnPPButtonClick( wxCommandEvent& event ) { event.Skip(); }
-		virtual void OnPPLeftDown( wxMouseEvent& event ) { event.Skip(); }
 
 
 	public:
@@ -229,6 +220,34 @@ class Container_Backup : public wxFrame
 	private:
 
 	protected:
+		wxPanel* m_panel71;
+		wxStaticText* m_staticText81;
+		wxPanel* m_panel171;
+		SimpleButton* m_customControl61;
+		SimpleButton* m_customControl71;
+
+		// Virtual event handlers, overide them in your derived class
+		virtual void OnClose( wxCloseEvent& event ) { event.Skip(); }
+
+
+	public:
+		wxPanel* m_panel_backup;
+		wxScrolledWindow* m_scrolledwindow;
+
+		Container_Backup( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 350,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+
+		~Container_Backup();
+
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class Container_Backup_s00
+///////////////////////////////////////////////////////////////////////////////
+class Container_Backup_s00 : public wxFrame
+{
+	private:
+
+	protected:
 		wxScrolledWindow* m_scrolledwindow;
 		wxPanel* m_panel71;
 		wxStaticText* m_staticText81;
@@ -243,9 +262,9 @@ class Container_Backup : public wxFrame
 	public:
 		wxPanel* m_panel_backup;
 
-		Container_Backup( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		Container_Backup_s00( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 350,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 
-		~Container_Backup();
+		~Container_Backup_s00();
 
 };
 
@@ -318,6 +337,35 @@ class Container_Restore : public wxFrame
 	private:
 
 	protected:
+		wxPanel* m_panel71;
+		wxStaticText* m_staticText81;
+		wxPanel* m_panel171;
+		SimpleButton* m_customControl61;
+		SimpleButton* m_customControl71;
+		SimpleButton* m_customControl81;
+
+		// Virtual event handlers, overide them in your derived class
+		virtual void OnClose( wxCloseEvent& event ) { event.Skip(); }
+
+
+	public:
+		wxPanel* m_panel_restore;
+		wxScrolledWindow* m_scrolledwindow;
+
+		Container_Restore( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 350,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+
+		~Container_Restore();
+
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class Container_Restore_s00
+///////////////////////////////////////////////////////////////////////////////
+class Container_Restore_s00 : public wxFrame
+{
+	private:
+
+	protected:
 		wxScrolledWindow* m_scrolledwindow;
 		wxPanel* m_panel71;
 		wxStaticText* m_staticText81;
@@ -334,9 +382,9 @@ class Container_Restore : public wxFrame
 	public:
 		wxPanel* m_panel_restore;
 
-		Container_Restore( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 350,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		Container_Restore_s00( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 350,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 
-		~Container_Restore();
+		~Container_Restore_s00();
 
 };
 
@@ -390,7 +438,7 @@ class Container_Tools : public wxFrame
 	public:
 		wxScrolledWindow* m_scrolledwindow;
 
-		Container_Tools( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		Container_Tools( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 350,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 
 		~Container_Tools();
 

@@ -94,6 +94,16 @@ void* CloneWorker::Entry()
             wxQueueEvent(event_handler, new ErrorEvent(_T("Destination disk is too small")));
             goto END;
         }
+        if(SystemEnvironment::RunOnPE())
+        {
+            shared_ptr<VirtualDisk> src(new Physical(clone_data->disk_number_src));
+            ULONGLONG sectors_to_clone = src->GetDiskSize();
+            sectors_to_clone /= src->GetSectorSize();
+            updaters->Append(sectors_to_clone, 0, 0, false);
+
+            DiskUpdateTask::Update(this, event_handler, src, dest_handle, updaters, true);
+            goto END;
+        }
     }
 
     //
@@ -133,13 +143,13 @@ void* CloneWorker::Entry()
     }
 
     src->CreateEmptyClusterRanges();
-    shared_ptr<MBRGPT> mod_mbrgpt = src_mbrgpt.CreateShrinked(dest);
+    shared_ptr<MBRGPT> mod_mbrgpt = src_mbrgpt.CreateNew(dest);
     if(!mod_mbrgpt->IsValid())
     {
         wxQueueEvent(event_handler, new ErrorEvent(mod_mbrgpt->GetReason()));
         goto END;
     }
-    if(mod_mbrgpt->IsModified())
+    if(mod_mbrgpt->IsShrinked())
     {
         wxQueueEvent(event_handler, new MsgEvent(_T("Shrink Mode")));
     }
@@ -192,7 +202,7 @@ void* CloneWorker::Entry()
     //
     // sector update(FileSystem)
     //
-    if(mod_mbrgpt->IsModified())
+    if(mod_mbrgpt->IsShrinked())
     {
         shared_ptr<VirtualDiskStream> stream(new VirtualDiskStream(src));
         FileSystem fs(stream);
@@ -205,8 +215,8 @@ void* CloneWorker::Entry()
     //
     // Update disk properties
     //
-    //DWORD BytesReturened;
-    //DeviceIoControl(dest_handle, IOCTL_DISK_UPDATE_PROPERTIES, NULL, 0, NULL, 0, &BytesReturened, NULL);
+    DWORD BytesReturened;
+    DeviceIoControl(dest_handle, IOCTL_DISK_UPDATE_PROPERTIES, NULL, 0, NULL, 0, &BytesReturened, NULL);
 
     }
     }

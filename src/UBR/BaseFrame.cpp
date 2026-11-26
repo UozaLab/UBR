@@ -268,55 +268,6 @@ Container_Home::Container_Home( wxWindow* parent, wxWindowID id, const wxString&
 	bSizer76->Add( m_textCtrl2, 0, wxALL|wxEXPAND, 5 );
 
 
-	bSizer76->Add( 0, 10, 0, wxEXPAND, 5 );
-
-	m_panel34 = new wxPanel( m_panel52, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	wxBoxSizer* bSizer50;
-	bSizer50 = new wxBoxSizer( wxHORIZONTAL );
-
-	m_bpButton1 = new wxBitmapButton( m_panel34, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize( 18,18 ), wxBU_AUTODRAW|wxBORDER_NONE );
-	bSizer50->Add( m_bpButton1, 0, wxALIGN_CENTER_VERTICAL, 0 );
-
-	m_staticText11 = new wxStaticText( m_panel34, wxID_ANY, wxT("Project progress"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_staticText11->Wrap( -1 );
-	bSizer50->Add( m_staticText11, 0, wxALIGN_CENTER_VERTICAL, 0 );
-
-
-	m_panel34->SetSizer( bSizer50 );
-	m_panel34->Layout();
-	bSizer50->Fit( m_panel34 );
-	bSizer76->Add( m_panel34, 0, wxEXPAND | wxALL, 0 );
-
-	m_grid1 = new wxGrid( m_panel52, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
-
-	// Grid
-	m_grid1->CreateGrid( 5, 3 );
-	m_grid1->EnableEditing( false );
-	m_grid1->EnableGridLines( true );
-	m_grid1->EnableDragGridSize( false );
-	m_grid1->SetMargins( 3, 3 );
-
-	// Columns
-	m_grid1->AutoSizeColumns();
-	m_grid1->EnableDragColMove( false );
-	m_grid1->EnableDragColSize( false );
-	m_grid1->SetColLabelSize( 1 );
-	m_grid1->SetColLabelAlignment( wxALIGN_CENTER, wxALIGN_CENTER );
-
-	// Rows
-	m_grid1->EnableDragRowSize( false );
-	m_grid1->SetRowLabelSize( 1 );
-	m_grid1->SetRowLabelAlignment( wxALIGN_CENTER, wxALIGN_CENTER );
-
-	// Label Appearance
-
-	// Cell Defaults
-	m_grid1->SetDefaultCellAlignment( wxALIGN_LEFT, wxALIGN_TOP );
-	m_grid1->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_SCROLLBAR ) );
-
-	bSizer76->Add( m_grid1, 0, wxLEFT, 20 );
-
-
 	bSizer76->Add( 0, 0, 1, wxEXPAND, 5 );
 
 
@@ -351,16 +302,12 @@ Container_Home::Container_Home( wxWindow* parent, wxWindowID id, const wxString&
 
 	// Connect Events
 	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( Container_Home::OnClose ) );
-	m_bpButton1->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( Container_Home::OnPPButtonClick ), NULL, this );
-	m_staticText11->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( Container_Home::OnPPLeftDown ), NULL, this );
 }
 
 Container_Home::~Container_Home()
 {
 	// Disconnect Events
 	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( Container_Home::OnClose ) );
-	m_bpButton1->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( Container_Home::OnPPButtonClick ), NULL, this );
-	m_staticText11->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( Container_Home::OnPPLeftDown ), NULL, this );
 
 }
 
@@ -639,6 +586,96 @@ Container_Backup::Container_Backup( wxWindow* parent, wxWindowID id, const wxStr
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 
+	wxBoxSizer* bSizer4;
+	bSizer4 = new wxBoxSizer( wxVERTICAL );
+
+	m_panel_backup = new wxPanel( this, wxID_PANEL_ROOT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel_backup->SetBackgroundColour( wxColour( 245, 245, 245 ) );
+
+	wxBoxSizer* bSizer36;
+	bSizer36 = new wxBoxSizer( wxVERTICAL );
+
+	m_scrolledwindow = new wxScrolledWindow( m_panel_backup, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxVSCROLL );
+	m_scrolledwindow->SetScrollRate( 5, 5 );
+	m_scrolledwindow->SetBackgroundColour( wxColour( 245, 245, 245 ) );
+
+	wxBoxSizer* bSizer20;
+	bSizer20 = new wxBoxSizer( wxVERTICAL );
+
+	m_panel71 = new wxPanel( m_scrolledwindow, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel71->SetBackgroundColour( wxColour( 225, 225, 225 ) );
+
+	wxBoxSizer* bSizer111;
+	bSizer111 = new wxBoxSizer( wxVERTICAL );
+
+
+	bSizer111->Add( 0, 8, 0, wxEXPAND, 5 );
+
+	m_staticText81 = new wxStaticText( m_panel71, wxID_ANY, wxT("Backup"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText81->Wrap( -1 );
+	m_staticText81->SetFont( wxFont( 12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
+	m_staticText81->SetForegroundColour( wxColour( 26, 26, 26 ) );
+
+	bSizer111->Add( m_staticText81, 0, wxLEFT, 12 );
+
+
+	bSizer111->Add( 0, 8, 0, wxEXPAND, 5 );
+
+
+	m_panel71->SetSizer( bSizer111 );
+	m_panel71->Layout();
+	bSizer111->Fit( m_panel71 );
+	bSizer20->Add( m_panel71, 0, wxEXPAND | wxALL, 0 );
+
+	m_panel171 = new wxPanel( m_scrolledwindow, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* bSizer191;
+	bSizer191 = new wxBoxSizer( wxVERTICAL );
+
+	m_customControl61 = new SimpleButton( m_panel171, wxID_BACKUP_DISK, wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer191->Add( m_customControl61, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 12 );
+
+	m_customControl71 = new SimpleButton( m_panel171, wxID_BACKUP_PART, wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer191->Add( m_customControl71, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 12 );
+
+
+	m_panel171->SetSizer( bSizer191 );
+	m_panel171->Layout();
+	bSizer191->Fit( m_panel171 );
+	bSizer20->Add( m_panel171, 1, wxEXPAND | wxALL, 0 );
+
+
+	m_scrolledwindow->SetSizer( bSizer20 );
+	m_scrolledwindow->Layout();
+	bSizer20->Fit( m_scrolledwindow );
+	bSizer36->Add( m_scrolledwindow, 1, wxEXPAND, 0 );
+
+
+	m_panel_backup->SetSizer( bSizer36 );
+	m_panel_backup->Layout();
+	bSizer36->Fit( m_panel_backup );
+	bSizer4->Add( m_panel_backup, 1, wxEXPAND, 0 );
+
+
+	this->SetSizer( bSizer4 );
+	this->Layout();
+
+	this->Centre( wxBOTH );
+
+	// Connect Events
+	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( Container_Backup::OnClose ) );
+}
+
+Container_Backup::~Container_Backup()
+{
+	// Disconnect Events
+	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( Container_Backup::OnClose ) );
+
+}
+
+Container_Backup_s00::Container_Backup_s00( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+
 	wxBoxSizer* bSizer8;
 	bSizer8 = new wxBoxSizer( wxVERTICAL );
 
@@ -719,13 +756,13 @@ Container_Backup::Container_Backup( wxWindow* parent, wxWindowID id, const wxStr
 	this->Centre( wxBOTH );
 
 	// Connect Events
-	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( Container_Backup::OnClose ) );
+	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( Container_Backup_s00::OnClose ) );
 }
 
-Container_Backup::~Container_Backup()
+Container_Backup_s00::~Container_Backup_s00()
 {
 	// Disconnect Events
-	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( Container_Backup::OnClose ) );
+	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( Container_Backup_s00::OnClose ) );
 
 }
 
@@ -932,6 +969,99 @@ Container_Restore::Container_Restore( wxWindow* parent, wxWindowID id, const wxS
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 
+	wxBoxSizer* bSizer4;
+	bSizer4 = new wxBoxSizer( wxVERTICAL );
+
+	m_panel_restore = new wxPanel( this, wxID_PANEL_ROOT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel_restore->SetBackgroundColour( wxColour( 245, 245, 245 ) );
+
+	wxBoxSizer* bSizer36;
+	bSizer36 = new wxBoxSizer( wxVERTICAL );
+
+	m_scrolledwindow = new wxScrolledWindow( m_panel_restore, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxVSCROLL );
+	m_scrolledwindow->SetScrollRate( 5, 5 );
+	m_scrolledwindow->SetBackgroundColour( wxColour( 245, 245, 245 ) );
+
+	wxBoxSizer* bSizer20;
+	bSizer20 = new wxBoxSizer( wxVERTICAL );
+
+	m_panel71 = new wxPanel( m_scrolledwindow, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel71->SetBackgroundColour( wxColour( 225, 225, 225 ) );
+
+	wxBoxSizer* bSizer111;
+	bSizer111 = new wxBoxSizer( wxVERTICAL );
+
+
+	bSizer111->Add( 0, 8, 0, wxEXPAND, 5 );
+
+	m_staticText81 = new wxStaticText( m_panel71, wxID_ANY, wxT("Restore"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText81->Wrap( -1 );
+	m_staticText81->SetFont( wxFont( 12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
+	m_staticText81->SetForegroundColour( wxColour( 26, 26, 26 ) );
+
+	bSizer111->Add( m_staticText81, 0, wxLEFT, 12 );
+
+
+	bSizer111->Add( 0, 8, 0, wxEXPAND, 5 );
+
+
+	m_panel71->SetSizer( bSizer111 );
+	m_panel71->Layout();
+	bSizer111->Fit( m_panel71 );
+	bSizer20->Add( m_panel71, 0, wxEXPAND | wxALL, 0 );
+
+	m_panel171 = new wxPanel( m_scrolledwindow, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* bSizer191;
+	bSizer191 = new wxBoxSizer( wxVERTICAL );
+
+	m_customControl61 = new SimpleButton( m_panel171, wxID_BACKUP_DISK, wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer191->Add( m_customControl61, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 12 );
+
+	m_customControl71 = new SimpleButton( m_panel171, wxID_BACKUP_PART, wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer191->Add( m_customControl71, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 12 );
+
+	m_customControl81 = new SimpleButton( m_panel171, wxID_BACKUP_PART, wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer191->Add( m_customControl81, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 12 );
+
+
+	m_panel171->SetSizer( bSizer191 );
+	m_panel171->Layout();
+	bSizer191->Fit( m_panel171 );
+	bSizer20->Add( m_panel171, 1, wxEXPAND | wxALL, 0 );
+
+
+	m_scrolledwindow->SetSizer( bSizer20 );
+	m_scrolledwindow->Layout();
+	bSizer20->Fit( m_scrolledwindow );
+	bSizer36->Add( m_scrolledwindow, 1, wxEXPAND, 0 );
+
+
+	m_panel_restore->SetSizer( bSizer36 );
+	m_panel_restore->Layout();
+	bSizer36->Fit( m_panel_restore );
+	bSizer4->Add( m_panel_restore, 1, wxEXPAND, 0 );
+
+
+	this->SetSizer( bSizer4 );
+	this->Layout();
+
+	this->Centre( wxBOTH );
+
+	// Connect Events
+	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( Container_Restore::OnClose ) );
+}
+
+Container_Restore::~Container_Restore()
+{
+	// Disconnect Events
+	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( Container_Restore::OnClose ) );
+
+}
+
+Container_Restore_s00::Container_Restore_s00( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+
 	wxBoxSizer* bSizer8;
 	bSizer8 = new wxBoxSizer( wxVERTICAL );
 
@@ -1019,13 +1149,13 @@ Container_Restore::Container_Restore( wxWindow* parent, wxWindowID id, const wxS
 	this->Centre( wxBOTH );
 
 	// Connect Events
-	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( Container_Restore::OnClose ) );
+	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( Container_Restore_s00::OnClose ) );
 }
 
-Container_Restore::~Container_Restore()
+Container_Restore_s00::~Container_Restore_s00()
 {
 	// Disconnect Events
-	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( Container_Restore::OnClose ) );
+	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( Container_Restore_s00::OnClose ) );
 
 }
 

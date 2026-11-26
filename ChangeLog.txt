@@ -1,3 +1,11 @@
+1.0.0 (2026.11.26)
+    add partition backup and restore
+    add boot sector restore
+    add support for cloning drives encrypted with bitlocker
+    make it possible to run without lang folder
+    fix wrong recovery of the backup GPT sectors
+    fix wrong reading of GPT entry tables
+
 0.0.5 (2026.11.02)
     add a reload button
     improve clone and restore speed

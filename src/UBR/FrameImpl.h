@@ -54,29 +54,29 @@ public:
 class FrameImpl : public BaseFrame
 {
   protected:
-        DataHolder dataholder;
-        InitializeWorker* initialize;
-        void init_language();
-        void deselect_all(const SimpleButton* except = NULL);
+    DataHolder dataholder;
+    InitializeWorker* initialize;
+    void init_language();
+    void deselect_all(const SimpleButton* except = NULL);
 
   public:
-		FrameImpl();
-        DataHolder* Holder() { return  &dataholder; }
+    FrameImpl();
+    DataHolder* Holder() { return  &dataholder; }
 
-        void PauseButtons(bool pause);
+    void PauseButtons(bool pause);
 
-        void OnClickHome( wxCommandEvent& event );
-        void OnClickBackup( wxCommandEvent& event );
-        void OnClickRestore( wxCommandEvent& event );
-        void OnClickClone( wxCommandEvent& event );
-        void OnClickTools( wxCommandEvent& event );
+    void OnClickHome( wxCommandEvent& event );
+    void OnClickBackup( wxCommandEvent& event );
+    void OnClickRestore( wxCommandEvent& event );
+    void OnClickClone( wxCommandEvent& event );
+    void OnClickTools( wxCommandEvent& event );
 
-		void OnClose( wxCloseEvent& event );
-        void OnChoice( wxCommandEvent& event );
-        void OnGlobeDown( wxMouseEvent& event );
-        void OnReloadDown( wxMouseEvent& event );
+    void OnClose( wxCloseEvent& event );
+    void OnChoice( wxCommandEvent& event );
+    void OnGlobeDown( wxMouseEvent& event );
+    void OnReloadDown( wxMouseEvent& event );
 
-        void OnThreadEvent(wxThreadEvent& event);
+    void OnThreadEvent(wxThreadEvent& event);
 };
 
 
@@ -109,23 +109,37 @@ class ContainerCommon
 class Container_RestoreImpl : public Container_Restore, ContainerCommon
 {
 public:
-		Container_RestoreImpl( FrameImpl* _frameimpl );
+    Container_RestoreImpl( FrameImpl* _frameimpl );
+    void OnClickDiskRestoreButton( wxCommandEvent& event );
+    void OnClickPartRestoreButton( wxCommandEvent& event );
+    void OnClickPartRestore2Button( wxCommandEvent& event );
 
-        void OnClickButton( wxCommandEvent& event );
-        void OnClickPrevButton( wxCommandEvent& event );
-        void OnClickNextButton( wxCommandEvent& event );
-        void OnClose( wxCloseEvent& event );
+    void OnClose( wxCloseEvent& event );
+};
+
+class Container_RestoreImpl_s00 : public Container_Restore_s00, ContainerCommon
+{
+protected:
+    bool file_selected;
+public:
+    Container_RestoreImpl_s00( FrameImpl* _frameimpl );
+
+    void OnClickButton( wxCommandEvent& event );
+    void OnClickPrevButton( wxCommandEvent& event );
+    void OnClickNextButton( wxCommandEvent& event );
+    void OnSelectDisk(wxCommandEvent& event);
+    void OnClose( wxCloseEvent& event );
 };
 
 class Container_RestoreImpl_s01 : public Container_Restore_s01, ContainerCommon
 {
 public:
-		Container_RestoreImpl_s01( FrameImpl* _frameimpl );
+    Container_RestoreImpl_s01( FrameImpl* _frameimpl );
 
-        void OnClickPrevButton( wxCommandEvent& event );
-        void OnClickNextButton( wxCommandEvent& event );
-        void OnSelectDisk(wxCommandEvent& event);
-        void OnClose( wxCloseEvent& event );
+    void OnClickPrevButton( wxCommandEvent& event );
+    void OnClickNextButton( wxCommandEvent& event );
+    void OnSelectDisk(wxCommandEvent& event);
+    void OnClose( wxCloseEvent& event );
 };
 
 class Container_RestoreImpl_s02 : public Container_Common_ProgressImpl, ContainerCommon
@@ -144,7 +158,17 @@ class Container_BackupImpl : public Container_Backup, ContainerCommon
 {
 public:
     Container_BackupImpl( FrameImpl* _frameimpl );
+    void OnClickDiskBackupButton( wxCommandEvent& event );
+    void OnClickPartBackupButton( wxCommandEvent& event );
+    virtual void OnClose( wxCloseEvent& event );
+};
+
+class Container_BackupImpl_s00 : public Container_Backup_s00, ContainerCommon
+{
+public:
+    Container_BackupImpl_s00( FrameImpl* _frameimpl );
     void OnClickNextButton( wxCommandEvent& event );
+    void OnClickPrevButton( wxCommandEvent& event );
     void OnSelectDisk(wxCommandEvent& event);
     virtual void OnClose( wxCloseEvent& event );
 };
@@ -192,8 +216,6 @@ class Container_HomeImpl : public Container_Home, ContainerCommon
 {
 public:
     Container_HomeImpl( FrameImpl* _frameimpl);
-    virtual void OnPPButtonClick( wxCommandEvent& event );
-    virtual void OnPPLeftDown( wxMouseEvent& event );
     virtual void OnClose( wxCloseEvent& event );
 };
 

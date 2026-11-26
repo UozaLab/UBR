@@ -49,6 +49,7 @@ struct PhysicalDiskInfo
 class PhysicalDiskUtil
 {
 public:
+    static PARTITION_INFORMATION_EX FindPartitionInformation(shared_ptr<PhysicalDiskInfo> pdi, DWORD PartitionNumber);
     static VolumeInfo FindVolumeInfo(shared_ptr<PhysicalDiskInfo> pdi, DWORD PartitionNumber);
     static void UpdateVolumeInfo(shared_ptr<PhysicalDiskInfo> pdi, VolumeInfo volume_info);
     static bool LockAndDismount(shared_ptr<PhysicalDiskInfo> pdi, std::vector<HANDLE>& handles_opened);

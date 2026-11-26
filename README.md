@@ -1,6 +1,10 @@
 # UBR
 
-UBR is a HDD backup, restore and clone utility.
+UBR is software that allows you to back up, restore, and clone HDDs and SSDs.  
+UBR accesses the disk sector information and convert the entire disk into a single file.  
+You can choose the file format from VHDX, VHD, or RAW.  
+Software for creating a USB flash drive to boot Windows PE named PEMaker is included.  
+By booting into Windows PE and running UBR, you can restore a disk containing the OS.  
 
 ## Features
 
@@ -12,6 +16,7 @@ UBR is a HDD backup, restore and clone utility.
 * Restore from VHD, VHDX and RAW images
 * Restore from compressed(lz4) images
 * Restore and clone to a smaller HDD
+* Clone disks containing drives encrypted with bitlocker
 * Live clone by using VSS snapshots
 * Improve performance by skipping non used area during copying(FAT12/16/32, NTFS)
 * Support for making a bootable media to run a WinPE
@@ -26,16 +31,9 @@ UBR is a HDD backup, restore and clone utility.
 
 ![](https://github.com/UozaLab/UBR/wiki/images/ubr_screenshot.png)
 
-## Wiki
+## Information
 
-See documentation at the [Wiki](https://github.com/UozaLab/UBR/wiki)
-
-## Project Status
-
-This project is in development phase.
-
-Features like partition backup and restore are not implemented yet.
-
+* [Website](https://uozalab.web.fc2.com)
 
 ## Compiling
 

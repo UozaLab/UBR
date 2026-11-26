@@ -16,8 +16,6 @@
  */
 
 #include "MiscWx.h"
-#include "resource.h"
-#include "resource_lang.h"
 
 
 void Utility::SetIcon(SimpleButton* button, int iconid, wxString text)
@@ -81,22 +79,32 @@ MultiLanguage::MultiLanguage()
     resource_loaded = false;
 }
 
+char* read_from_resource(int id, DWORD* len)
+{
+    HMODULE handle = ::GetModuleHandle(NULL);
+    HRSRC rc = ::FindResource(handle, MAKEINTRESOURCE(id), _T("TEXT"));
+    HGLOBAL rcData = ::LoadResource(handle, rc);
+    DWORD size = ::SizeofResource(handle, rc);
+
+    char* buffer = new char[size+1];
+    ::memcpy(buffer, rcData, size);
+    buffer[size] = 0;
+
+    *len = size;
+    return buffer;
+}
+
 wxString MultiLanguage::GetString(wxString category, wxString name)
 {
+    std::map<wxString, int>* id_map = GetLangMap();
+    
     if(!resource_loaded)
     {
-        HMODULE handle = ::GetModuleHandle(NULL);
-        HRSRC rc = ::FindResource(handle, MAKEINTRESOURCE(IDR_TEXT1), _T("TEXT")/*MAKEINTRESOURCE(TEXT)*/);
-        HGLOBAL rcData = ::LoadResource(handle, rc);
-        DWORD size = ::SizeofResource(handle, rc);
-
-        char* buffer = new char[size+1];
-        ::memcpy(buffer, rcData, size);
-        buffer[size] = 0;
-
+        DWORD size;
+        char* buffer = read_from_resource(IDR_LANG_EN_US, &size);
         ini_res.LoadData(buffer, size);
-        
         delete[] buffer;
+
         resource_loaded = true;
     }
     if(damaged)
@@ -106,6 +114,16 @@ wxString MultiLanguage::GetString(wxString category, wxString name)
         file.SetName(locale);
         file.SetExt("txt");
         ini.Reset();
+        if(!file.FileExists())
+        {
+            if(id_map->count(locale) > 0)
+            {
+                DWORD size;
+                char* buffer = read_from_resource((*id_map)[locale], &size);
+                ini.LoadData(buffer, size);
+                delete[] buffer;
+            }
+        }
         ini.LoadFile(file.GetFullPath().wchar_str());
 
         damaged = false;

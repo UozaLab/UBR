@@ -35,7 +35,7 @@ DiskPanelImpl::DiskPanelImpl( wxWindow* _parent, wxEvtHandler* eh, shared_ptr<Ph
     SetForegroundColour( disabled ? COLOR_BACKGROUND_DISABLED_RIGHTPANEL : COLOR_BACKGROUND_RIGHTPANEL );
 
     bSizer = new wxBoxSizer( wxHORIZONTAL );
-    child_panels.push_back(std::pair<bool, wxPanel*>(true, AddTitlePanel()));
+    child_panels.push_back(ChildPanel(true, 0, AddTitlePanel()));
 
     double ratio_sum = 0;
     for(std::vector<PARTITION_INFORMATION_EX>::iterator itr = physical_disk->Partitions.begin(), itr_end = physical_disk->Partitions.end();
@@ -48,7 +48,8 @@ DiskPanelImpl::DiskPanelImpl( wxWindow* _parent, wxEvtHandler* eh, shared_ptr<Ph
                                                     : (double) partition_info.PartitionLength.QuadPart / physical_disk->DiskSize;
         ratios.push_back(ratio);
         ratio_sum += ratio;
-        child_panels.push_back(std::pair<bool, wxPanel*>(false, AddDrivePanel(&(*itr), PhysicalDiskUtil::FindVolumeInfo(physical_disk, (*itr).PartitionNumber), ratio)));
+        VolumeInfo vi(PhysicalDiskUtil::FindVolumeInfo(physical_disk, (*itr).PartitionNumber));
+        child_panels.push_back(ChildPanel(false, vi.StorageDeviceNumber.PartitionNumber, AddDrivePanel(&(*itr), vi, ratio)));
     }
     loose_mode = (ratio_sum < 0.8);
 
@@ -225,12 +226,13 @@ void DiskPanelImpl::UnSelectPanels()
     selected = false;
     hovered = false;
     SetBackgroundColour( COLOR_BACKGROUND_RIGHTPANEL );
-    for(std::vector<std::pair<bool, wxPanel*>>::iterator itr = child_panels.begin(), itr_end = child_panels.end();
+    for(std::vector<ChildPanel>::iterator itr = child_panels.begin(), itr_end = child_panels.end();
         itr != itr_end; ++itr)
     {
-        bool title_panel = itr->first;
-        wxPanel* p = itr->second;
+        bool title_panel = itr->TitlePanel;
+        wxPanel* p = itr->Panel;
         p->SetBackgroundColour( title_panel ? COLOR_BACKGROUND_RIGHTPANEL : COLOR_BACKGROUND_RIGHTPANEL_DRIVE );
+        itr->Selected = false;
     }
     Refresh();
 }
@@ -268,11 +270,11 @@ void DiskPanelImpl::mouseDown (wxMouseEvent& e)
         if(!selected)
         {
             SetBackgroundColour( COLOR_BACKGROUND_SELECTED );
-            for(std::vector<std::pair<bool, wxPanel*>>::iterator itr = child_panels.begin(), itr_end = child_panels.end();
+            for(std::vector<ChildPanel>::iterator itr = child_panels.begin(), itr_end = child_panels.end();
                 itr != itr_end; ++itr)
             {
-                bool title_panel = itr->first;
-                wxPanel* p = itr->second;
+                bool title_panel = itr->TitlePanel;
+                wxPanel* p = itr->Panel;
                 p->SetBackgroundColour( title_panel ? COLOR_BACKGROUND_SELECTED : COLOR_BACKGROUND_SELECTED_PALE );
             }
             Refresh();
@@ -288,13 +290,141 @@ void DiskPanelImpl::mouseDown (wxMouseEvent& e)
         wxQueueEvent(event_handler, e);
         return;
     }
-#if 0
-    wxObject* caller = e.GetEventObject();
-    wxPanel* panel = dynamic_cast<wxPanel*>(caller);
-    if(panel == NULL) return;
-    panel->SetBackgroundColour( COLOR_BACKGROUND_SELECTED );
-    Refresh();
-#endif
+
+    if(selection_mode == DISK_PANEL_SELECTION_PARTITION)
+    {
+        wxObject* caller = e.GetEventObject();
+        wxPanel* panel = dynamic_cast<wxPanel*>(caller);
+        if(panel == NULL) return;
+        for(std::vector<ChildPanel>::iterator itr = child_panels.begin(), itr_end = child_panels.end();
+            itr != itr_end; ++itr)
+        {
+            if(itr->Panel == panel)
+            {
+                if(itr->TitlePanel)
+                {
+                  itr->Selected = false;
+                  break;
+                }
+                itr->Selected = true;
+            }
+            else
+            {
+                itr->Selected = false;
+            }
+        }
+
+        for(std::vector<ChildPanel>::iterator itr = child_panels.begin(), itr_end = child_panels.end();
+            itr != itr_end; ++itr)
+        {
+            
+            if(itr->Selected)
+              itr->Panel->SetBackgroundColour( itr->TitlePanel ? COLOR_BACKGROUND_SELECTED : COLOR_BACKGROUND_SELECTED_PALE );
+            else
+              itr->Panel->SetBackgroundColour( itr->TitlePanel ? COLOR_BACKGROUND_RIGHTPANEL : COLOR_BACKGROUND_RIGHTPANEL_DRIVE );
+
+        }
+        Refresh();
+
+        wxCommandEvent* e = new wxCommandEvent(myEVT_SelectDisk);
+        {
+            sd.dpi = this;
+            sd.mode = selection_mode;
+            sd.partition_numbers.clear();
+            for(std::vector<ChildPanel>::iterator itr = child_panels.begin(), itr_end = child_panels.end();
+                itr != itr_end; ++itr)
+            {
+                if(itr->TitlePanel) continue;
+                if(itr->Selected)
+                  sd.partition_numbers.push_back(itr->PartitionNumber);
+            }
+            sd.disk_number = physical_disk->DeviceNumber;
+        }
+        e->SetEventObject(&sd);
+        wxQueueEvent(event_handler, e);
+
+    }
+    
+    if(selection_mode == DISK_PANEL_SELECTION_PARTITION_MULTI)
+    {
+        wxObject* caller = e.GetEventObject();
+        wxPanel* panel = dynamic_cast<wxPanel*>(caller);
+        if(panel == NULL) return;
+        bool damaged = false;
+        int partition_number = 0;
+        bool all_selected = true;
+        bool all_unselected = true;
+        for(std::vector<ChildPanel>::iterator itr = child_panels.begin(), itr_end = child_panels.end();
+            itr != itr_end; ++itr)
+        {
+            if(itr->Panel == panel)
+            {
+                damaged = true;
+                partition_number = itr->PartitionNumber;
+                itr->Selected = !itr->Selected;
+            }
+            if(itr->PartitionNumber != 0 && !itr->Selected)
+            {
+                all_selected = false;
+            }
+        }
+        if(!damaged) return;
+
+        for(std::vector<ChildPanel>::iterator itr = child_panels.begin(), itr_end = child_panels.end();
+            itr != itr_end; ++itr)
+        {
+            if(partition_number == 0)
+            {
+                itr->Selected = !all_selected;
+            }
+            else
+            {
+                if(all_selected)
+                {
+                    itr->Selected = true;
+                }
+                else
+                {
+                    if(itr->PartitionNumber == 0)
+                    {
+                        itr->Selected = false;
+                    }
+                }
+            }
+            if(itr->Selected)
+              itr->Panel->SetBackgroundColour( itr->TitlePanel ? COLOR_BACKGROUND_SELECTED : COLOR_BACKGROUND_SELECTED_PALE );
+            else
+              itr->Panel->SetBackgroundColour( itr->TitlePanel ? COLOR_BACKGROUND_RIGHTPANEL : COLOR_BACKGROUND_RIGHTPANEL_DRIVE );
+
+            if(itr->Selected)
+              all_unselected = false;
+        }
+
+        Refresh();
+
+        if(all_unselected)
+        {
+            selected = false;
+        }
+
+        wxCommandEvent* e = new wxCommandEvent(myEVT_SelectDisk);
+        {
+            sd.dpi = this;
+            sd.mode = selection_mode;
+            sd.partition_numbers.clear();
+            for(std::vector<ChildPanel>::iterator itr = child_panels.begin(), itr_end = child_panels.end();
+                itr != itr_end; ++itr)
+            {
+                if(itr->TitlePanel) continue;
+                if(itr->Selected)
+                  sd.partition_numbers.push_back(itr->PartitionNumber);
+            }
+            sd.disk_number = physical_disk->DeviceNumber;
+        }
+        e->SetEventObject(&sd);
+        wxQueueEvent(event_handler, e);
+    }
+
 }
 
 void DiskPanelImpl::mouseMoved (wxMouseEvent& e)

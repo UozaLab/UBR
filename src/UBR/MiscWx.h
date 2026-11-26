@@ -21,9 +21,11 @@
 #include <wx/wx.h>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
+#include <map>
 #include "Widgets/SimpleButton.h"
 #include "SimpleIni.h"
-
+#include "resource.h"
+#include "resource_lang.h"
 
 class Utility
 {
@@ -56,6 +58,15 @@ public:
         damaged = true;
     }
     wxString GetString(wxString category, wxString name);
+    std::map<wxString, int>* GetLangMap()
+    {
+        static std::map<wxString, int> id_map
+        {
+            {"en-us", IDR_LANG_EN_US},
+            {"ja-jp", IDR_LANG_JA_JP},
+        };
+        return &id_map;
+    }
 };
 
 wxString ttt(wxString name);

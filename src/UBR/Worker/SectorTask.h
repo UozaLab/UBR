@@ -72,16 +72,17 @@ class DiskWriter : public CustomThread
     SyncControl* sync;
     ConditionVariable* cv;
     CustomThread* caller;
-
+    LONGLONG shift_bytes;
+    
   public:
-    DiskWriter(CustomThread* _caller, SyncControl* _sync, ConditionVariable* _cv, shared_ptr<VirtualDisk> _src, HANDLE _handle_dest);
+    DiskWriter(CustomThread* _caller, SyncControl* _sync, ConditionVariable* _cv, shared_ptr<VirtualDisk> _src, HANDLE _handle_dest, LONGLONG _shift_bytes);
     virtual void *Entry();
 };
 
 class DiskUpdateTask
 {
 public:
-    static void Update(CustomThread* thread, wxEvtHandler* event_handler, shared_ptr<VirtualDisk> src, HANDLE handle_dest, shared_ptr<DiskUpdaterCollection> updater_collection, bool show_progress = true);
+    static void Update(CustomThread* thread, wxEvtHandler* event_handler, shared_ptr<VirtualDisk> src, HANDLE handle_dest, shared_ptr<DiskUpdaterCollection> updater_collection, bool show_progress = true, LONGLONG shift_bytes = 0LL);
 
     static void DiskErase(CustomThread* thread, wxEvtHandler* event_handler, shared_ptr<VirtualDisk> src, HANDLE handle_dest, UINT64 sector_address, UINT64 count);
     static void UpdateMbrGpt(CustomThread* thread, wxEvtHandler* event_handler, shared_ptr<VirtualDisk> src, shared_ptr<MBRGPT> mbrgpt, HANDLE handle_dest);

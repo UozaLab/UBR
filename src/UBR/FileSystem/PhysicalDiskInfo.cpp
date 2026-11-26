@@ -17,6 +17,18 @@
 
 #include "PhysicalDiskInfo.h"
 
+PARTITION_INFORMATION_EX PhysicalDiskUtil::FindPartitionInformation(shared_ptr<PhysicalDiskInfo> pdi, DWORD PartitionNumber)
+{
+    for(std::vector<PARTITION_INFORMATION_EX>::iterator itr = pdi->Partitions.begin(), itr_end = pdi->Partitions.end();
+        itr != itr_end; itr++)
+    {
+        PARTITION_INFORMATION_EX pi = *itr;
+        if(pi.PartitionNumber == PartitionNumber) return pi;
+    }
+    PARTITION_INFORMATION_EX pi;
+    return pi;
+}
+
 VolumeInfo PhysicalDiskUtil::FindVolumeInfo(shared_ptr<PhysicalDiskInfo> pdi, DWORD PartitionNumber)
 {
     for(std::vector<VolumeInfo>::iterator itr = pdi->Volumes.begin(), itr_end = pdi->Volumes.end();

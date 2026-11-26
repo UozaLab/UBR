@@ -89,6 +89,7 @@ protected:
     bool valid;
     bool gpt;
     bool modified;
+    bool shrinked;
     tstring reason;
     shared_ptr<VirtualDisk> vdisk;
     DWORD target_partition_number;
@@ -96,6 +97,7 @@ protected:
     UINT64 partition_start_sector;
     UINT64 fixed_sectors;
     shared_ptr<MBRGPT> org;
+    LONGLONG shift_bytes;
 
     void update_chs();
     CHS lba2chs(int lba);
@@ -110,14 +112,20 @@ public:
     MBRGPT(const MBRGPT& rhs);
     MBRGPT& operator=(const MBRGPT& rhs);
 
-    shared_ptr<MBRGPT> CreateShrinked(shared_ptr<VirtualDisk> dest);// return invalid mbr if not shrinkable
+    shared_ptr<MBRGPT> CreateNew(shared_ptr<VirtualDisk> dest);
+    shared_ptr<MBRGPT> CreatePart(shared_ptr<VirtualDisk> dest, DWORD target_partition_number_src, DWORD target_partition_number_dst);
     shared_ptr<MBRGPT> CreateBackupGPT();
 
     bool IsValid() {return valid; }
     bool IsGPT() {return gpt; }
     bool IsModified() {return modified; }
+    bool IsShrinked() {return shrinked; }
     ULONGLONG GetBackupSectorCount();
+    LONGLONG ShiftBytes(){ return shift_bytes; }
 
+    bool UpdatePartitionTable(shared_ptr<VirtualDisk> dest);
+    bool CanRestoreBootSectors(shared_ptr<VirtualDisk> src, ULONGLONG dest_size);
+    
     DWORD GetTargetPartitionNumberToShrink() { return target_partition_number; }
     UINT64 GetSectorsToShrink() { return shift_sectors; }
     UINT64 GetPartitionStartSectorToShrink() { return partition_start_sector; }

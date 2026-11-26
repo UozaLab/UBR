@@ -46,6 +46,17 @@ struct SelectionData : public wxObject
     std::vector<int> partition_numbers;
 };
 
+struct ChildPanel
+{
+    bool TitlePanel;
+    int PartitionNumber;
+    wxPanel* Panel;
+    bool Selected;
+
+    ChildPanel(bool title_panel, int partition_number, wxPanel* panel)
+         : TitlePanel(title_panel), PartitionNumber(partition_number), Panel(panel), Selected(false) {}
+};
+
 class DiskPanelImpl : public wxPanel
 {
 private:
@@ -71,7 +82,7 @@ protected:
     wxPanel* AddTitlePanel();
     wxPanel* AddDrivePanel(const PARTITION_INFORMATION_EX* partition_info, const VolumeInfo& volume_info, double ratio);
     std::vector<double> ratios;
-    std::vector<std::pair<bool, wxPanel*>> child_panels;
+    std::vector<ChildPanel> child_panels;
     bool loose_mode;
     SelectionData sd;
     wxString guid2string(GUID guid);

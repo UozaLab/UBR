@@ -39,6 +39,7 @@ RestoreWorker::RestoreWorker(wxEvtHandler* event_handler, const RestoreData* _re
 void* RestoreWorker::Entry()
 {
     SetStateStart();
+    bool successfully_completed = false;
 
     std::vector<HANDLE> handles_locked;
     shared_ptr<DiskUpdaterCollection> updaters(new DiskUpdaterCollection());
@@ -72,16 +73,6 @@ void* RestoreWorker::Entry()
     }
 
     //
-    // Clear Sector0
-    //
-    //DISK_UPDATER_BYTE updator_byte;
-    //UINT8 sector0[512] = {};
-    //updator_byte.Address = 0;
-    //updator_byte.Size = 512;
-    //updator_byte.Data = sector0;
-    //DiskUpdateTask::DataCopy(this, event_handler, dest_handle, updator_byte);
-
-    //
     // Create new MBR/GPT
     //
     {
@@ -94,23 +85,69 @@ void* RestoreWorker::Entry()
         goto END;
     }
 
-    shared_ptr<MBRGPT> mod_mbrgpt = src_mbrgpt.CreateShrinked(dest);
+    shared_ptr<MBRGPT> mod_mbrgpt;
+    if(restore_data->mode == RESTORE_BOOT)
+    {
+        mod_mbrgpt = make_shared<MBRGPT>(src_mbrgpt);
+        if(!mod_mbrgpt->CanRestoreBootSectors(src, dest->GetDiskSize()))
+        {
+            wxQueueEvent(event_handler, new ErrorEvent(_T("You need a larger capacity disk to restore boot sectors")));
+            goto END;
+        }
+        mod_mbrgpt->UpdatePartitionTable(dest);
+    }
+    else if(restore_data->mode == RESTORE_PART)
+    {
+        if(restore_data->partition_numbers_src.size() < 1 ||
+           restore_data->partition_numbers_dst.size() < 1)
+        {
+            wxQueueEvent(event_handler, new ErrorEvent(_T("Invalid partitions")));
+            goto END;
+        }
+
+        mod_mbrgpt = src_mbrgpt.CreatePart(dest,
+                                           restore_data->partition_numbers_src[0],
+                                           restore_data->partition_numbers_dst[0]);
+
+    }
+    else
+    {
+        mod_mbrgpt = src_mbrgpt.CreateNew(dest);
+    }
+
     if(!mod_mbrgpt->IsValid())
     {
         wxQueueEvent(event_handler, new ErrorEvent(mod_mbrgpt->GetReason()));
         goto END;
     }
-    if(mod_mbrgpt->IsModified())
+
+    if(mod_mbrgpt->IsShrinked())
     {
         wxQueueEvent(event_handler, new MsgEvent(_T("Shrink Mode")));
     }
 
+    if(restore_data->mode == RESTORE_PART)
+    {
+        if(!mod_mbrgpt->IsShrinked())
+        {
+            updaters->Append(mod_mbrgpt->GetFixedSectors(),
+                             mod_mbrgpt->GetPartitionStartSectorToShrink(),
+                             mod_mbrgpt->GetPartitionStartSectorToShrink());
+        }
+        else
+        {
+            shared_ptr<VirtualDiskStream> stream(new VirtualDiskStream(src));
+            FileSystem fs(stream);
+            updaters->Append(*fs.GetShrinkedSectorData(mod_mbrgpt));
+        }
+        DiskUpdateTask::Update(this, event_handler, src, dest_handle, updaters, true, mod_mbrgpt->ShiftBytes());
+        goto LAST_STEP;
+    }
 
     //
     // sector copy(MBR/GPT)
     //
-    ULONGLONG backup_sector_count = src_mbrgpt.GetBackupSectorCount();
-    updaters->Append(backup_sector_count, 0, 0);
+    updaters->Append(src_mbrgpt.GetBackupSectorCount(), 0, 0);
     DiskUpdateTask::Update(this, event_handler, src, dest_handle, updaters, false);
     updaters->Clear();
 
@@ -120,6 +157,7 @@ void* RestoreWorker::Entry()
     if(mod_mbrgpt->IsModified())
         DiskUpdateTask::UpdateMbrGpt(this, event_handler, src, mod_mbrgpt, dest_handle);
 
+    if(restore_data->mode == RESTORE_BOOT) goto LAST_STEP;
 
     //
     // sector copy(DATA)
@@ -135,6 +173,13 @@ void* RestoreWorker::Entry()
                              src_mbrgpt.MbrGptInfo.GPE[i].FirstLBA,
                              mod_mbrgpt->MbrGptInfo.GPE[i].FirstLBA);
 
+        }
+        if(!mod_mbrgpt->IsModified())
+        {
+            updaters->Append(33,
+                             src_mbrgpt.MbrGptInfo.GptHeader.BackupLBA - 32,
+                             mod_mbrgpt->MbrGptInfo.GptHeader.BackupLBA - 32,
+                             false);
         }
     }
     else
@@ -154,7 +199,7 @@ void* RestoreWorker::Entry()
     // sector update(FileSystem)
     //
     src->SetLargeScaleMode(true);
-    if(mod_mbrgpt->IsModified())
+    if(mod_mbrgpt->IsShrinked())
     {
         shared_ptr<VirtualDiskStream> stream(new VirtualDiskStream(src));
         FileSystem fs(stream);
@@ -163,6 +208,8 @@ void* RestoreWorker::Entry()
 
     DiskUpdateTask::Update(this, event_handler, src, dest_handle, updaters);
 
+
+LAST_STEP:
     //
     // Update disk properties
     //
@@ -172,7 +219,7 @@ void* RestoreWorker::Entry()
     }
     }
 
-
+    successfully_completed = true;
 
 END:
     PhysicalDiskUtil::UnLock(handles_locked);
@@ -183,7 +230,7 @@ END:
 
     if(TerminateRequired())
         wxQueueEvent(event_handler, new MsgEvent(_T("Terminated")));
-    else
+    else if(successfully_completed)
     {
         wxQueueEvent(event_handler, new MsgEvent(ttt("FinishMsg"), wxColour(0, 0, 255)));
         wxQueueEvent(event_handler, new MsgEvent(ttt("FinishMsg2")));

@@ -202,6 +202,9 @@ void* BackupWorker::Entry()
             wxQueueEvent(event_handler, new MsgEvent("Failed to create a snapshot"));
     }
 
+    if(backup_data->mode != DISK_PANEL_SELECTION_DISK)
+      src->ApplyPartitionTarget(backup_data->partition_numbers_src);
+    
     if(fast_mode) src->CreateEmptyClusterRanges();
 
     wxOutputStream* out_stream;

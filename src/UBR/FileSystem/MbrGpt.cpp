@@ -22,9 +22,10 @@
 #include "Crc32.h"
 
 MBRGPT::MBRGPT(const MBRGPT& rhs)
-: valid(rhs.valid), gpt(rhs.gpt), modified(rhs.modified), 
+: valid(rhs.valid), gpt(rhs.gpt), modified(rhs.modified), shrinked(rhs.shrinked),
   target_partition_number(rhs.target_partition_number), shift_sectors(rhs.shift_sectors), 
-  partition_start_sector(rhs.partition_start_sector), fixed_sectors(rhs.fixed_sectors), org(rhs.org)
+  partition_start_sector(rhs.partition_start_sector), fixed_sectors(rhs.fixed_sectors), org(rhs.org),
+  shift_bytes(rhs.shift_bytes)
 {
     memcpy(&MbrGptInfo, &rhs.MbrGptInfo, sizeof(MBR_GPT_INFO));
     memcpy(&MbrGptSector, &rhs.MbrGptSector, sizeof(MbrGptSector));
@@ -38,23 +39,26 @@ MBRGPT& MBRGPT::operator=(const MBRGPT& rhs)
     valid = rhs.valid;
     gpt = rhs.gpt;
     modified = rhs.modified;
+    shrinked = rhs.shrinked;
     target_partition_number = rhs.target_partition_number;
     shift_sectors = rhs.shift_sectors;
     partition_start_sector = rhs.partition_start_sector;
     fixed_sectors = rhs.fixed_sectors;
     org = rhs.org;
-
+    shift_bytes = rhs.shift_bytes;
     return *this;
 }
 
 MBRGPT::MBRGPT(shared_ptr<VirtualDisk> _vdisk)
-: vdisk(_vdisk), valid(false), modified(false), target_partition_number(0), shift_sectors(0ULL), partition_start_sector(0ULL)
+: vdisk(_vdisk), valid(false), modified(false), shrinked(false),
+  target_partition_number(0), shift_sectors(0ULL), partition_start_sector(0ULL),
+  shift_bytes(0LL)
 {
     ZeroMemory(&MbrGptInfo, sizeof(MBR_GPT_INFO));
     VirtualDiskStream stream(vdisk);
 
-    UINT8* mbr_gpt_sector = stream.Read(0, 34);// 34 = mbr+GPTheader+GPTtable*32
-    memcpy(&MbrGptSector, mbr_gpt_sector, sizeof(MbrGptSector));
+    UINT8* mbr_gpt_sector = stream.Read(0, 2);// 2 = mbr(1) + GPTheader(1)
+    memcpy(&MbrGptSector, mbr_gpt_sector, 512*2);
     delete [] mbr_gpt_sector;
 
     valid = (MbrGptSector[510] == 0x55 && MbrGptSector[511] == 0xAA);
@@ -76,10 +80,13 @@ MBRGPT::MBRGPT(shared_ptr<VirtualDisk> _vdisk)
     }
 
     memcpy(&MbrGptInfo.GptHeader, MbrGptSector + GPT_HEADER_START_ADDRESS, sizeof(GPT_HEADER));
+    UINT8* gpt_entries = stream.Read(MbrGptInfo.GptHeader.StartingLBAOfPartitionEntry, 32);
+    memcpy(MbrGptSector + GPT_HEADER_START_ADDRESS + 512, gpt_entries, sizeof(GPT_PARTITION_ENTRY) * GPT_PARTITION_ENTRY_COUNT);
+    delete [] gpt_entries;
     for (int i = 0; i < GPT_PARTITION_ENTRY_COUNT; i++)
     {
         memcpy(&MbrGptInfo.GPE[i],
-               MbrGptSector + 512*MbrGptInfo.GptHeader.StartingLBAOfPartitionEntry + i * sizeof(GPT_PARTITION_ENTRY),
+               MbrGptSector + GPT_HEADER_START_ADDRESS + 512 + i * sizeof(GPT_PARTITION_ENTRY),
                sizeof(GPT_PARTITION_ENTRY));
     }
 }
@@ -117,7 +124,125 @@ void MBRGPT::update_chs()
     }
 }
 
-shared_ptr<MBRGPT> MBRGPT::CreateShrinked(shared_ptr<VirtualDisk> dest)
+bool MBRGPT::UpdatePartitionTable(shared_ptr<VirtualDisk> dest)
+{
+    if(!gpt) return false;
+
+    CRC32 crc32(0xedb88320);
+
+    ULONGLONG dest_size = dest->GetDiskSize();
+    DWORD byte_per_sector = dest->GetSectorSize();
+    MbrGptInfo.GptHeader.BackupLBA = (dest_size / byte_per_sector) - 1;
+    MbrGptInfo.GptHeader.LastUsableLBA = MbrGptInfo.GptHeader.BackupLBA - 33;
+
+    GPT_HEADER header;
+    memcpy(&header, &MbrGptInfo.GptHeader, sizeof(GPT_HEADER));
+    header.HeaderChecksum = 0;
+    UINT32 crc = crc32.calculate((UINT8*) &header, sizeof(GPT_HEADER));
+    MbrGptInfo.GptHeader.HeaderChecksum = crc;
+
+    modified = true;
+    update_sector();
+  return true;
+}
+
+bool MBRGPT::CanRestoreBootSectors(shared_ptr<VirtualDisk> src, ULONGLONG dest_size)
+{
+    if(src->GetDiskSize() <= dest_size) return true;
+
+    shared_ptr<PhysicalDiskInfo> pd = ForensicAnalysis::CreateDiskInfo(src);
+    ULONGLONG src_size = 0;
+    for(std::vector<PARTITION_INFORMATION_EX>::iterator itr = pd->Partitions.begin(),
+        itr_end = pd->Partitions.end(); itr != itr_end; itr++)
+    {
+        PARTITION_INFORMATION_EX pi = *itr;
+        if(src_size < (ULONGLONG) (pi.StartingOffset.QuadPart + pi.PartitionLength.QuadPart))
+        {
+            src_size = pi.StartingOffset.QuadPart + pi.PartitionLength.QuadPart;
+        }
+    }
+    return (dest_size >=  (gpt ? src_size + 33 * pd->BytesPerSector/*Backup GPT header and entries*/ : src_size));
+}
+
+shared_ptr<MBRGPT> MBRGPT::CreatePart(shared_ptr<VirtualDisk> dest, DWORD target_partition_number_src, DWORD target_partition_number_dst)
+{
+    org.reset(new MBRGPT(*this));
+    shared_ptr<MBRGPT> mbrgpt_mod(new MBRGPT(*this));
+    mbrgpt_mod->valid = false;
+
+    shared_ptr<PhysicalDiskInfo> pd_src = ForensicAnalysis::CreateDiskInfo(vdisk);
+    shared_ptr<PhysicalDiskInfo> pd_dst = ForensicAnalysis::CreateDiskInfo(dest);
+    PARTITION_INFORMATION_EX pi_src = PhysicalDiskUtil::FindPartitionInformation(pd_src, target_partition_number_src);
+    PARTITION_INFORMATION_EX pi_dst = PhysicalDiskUtil::FindPartitionInformation(pd_dst, target_partition_number_dst);
+    if(pi_src.PartitionNumber == 0 || pi_dst.PartitionNumber == 0) return mbrgpt_mod;
+    mbrgpt_mod->shift_bytes = pi_dst.StartingOffset.QuadPart - pi_src.StartingOffset.QuadPart;
+
+    mbrgpt_mod->valid = true;
+    mbrgpt_mod->target_partition_number = target_partition_number_src;
+    if(gpt)
+      mbrgpt_mod->partition_start_sector = MbrGptInfo.GPE[target_partition_number_src-1].FirstLBA;
+    else
+      mbrgpt_mod->partition_start_sector = MbrGptInfo.PE[target_partition_number_src-1].LBAOfFirstAbsoluteSector;
+    VolumeInfo vi_src = PhysicalDiskUtil::FindVolumeInfo(pd_src, target_partition_number_src);
+    DWORD sector_size = vi_src.FilesystemInfo.SizeInfo.BytesPerSector;
+    mbrgpt_mod->fixed_sectors = vi_src.FilesystemInfo.SizeInfo.Fixed;
+    mbrgpt_mod->fixed_sectors /= sector_size;
+
+    if(pi_src.PartitionLength.QuadPart <= pi_dst.PartitionLength.QuadPart)
+    {
+        mbrgpt_mod->shift_sectors = 0;
+        return mbrgpt_mod;
+    }
+
+    ULONGLONG shrinkable_size = vi_src.FilesystemInfo.SizeInfo.Total - vi_src.FilesystemInfo.SizeInfo.Fixed;
+    ULONGLONG byte_per_cluster = vi_src.FilesystemInfo.SizeInfo.SectorsPerCluster;
+    byte_per_cluster *= vi_src.FilesystemInfo.SizeInfo.BytesPerSector;
+    if(shrinkable_size <= byte_per_cluster * 10)
+    {
+        mbrgpt_mod->valid = false;
+        mbrgpt_mod->reason = _T("Source disk contains too many data");
+        return mbrgpt_mod;
+    }
+    shrinkable_size -= byte_per_cluster * 10;// margin : 10 clusters
+    ULONGLONG shrinkable_block_num = shrinkable_size / byte_per_cluster;
+    shrinkable_size = shrinkable_block_num * byte_per_cluster;
+
+    ULONGLONG shift_size = pi_src.PartitionLength.QuadPart - pi_dst.PartitionLength.QuadPart;
+    ULONGLONG shift_block_num = shift_size / byte_per_cluster;
+    if(shift_size % byte_per_cluster == 0)
+        shift_size = shift_block_num * byte_per_cluster;
+    else
+        shift_size = (shift_block_num + 1) * byte_per_cluster;
+
+    if(shift_size > shrinkable_size)
+    {
+        mbrgpt_mod->valid = false;
+        tostringstream oss;
+        ULONGLONG short_size = shift_size - shrinkable_size;
+        oss << "Destination disk is too small (" << Unit::HumanReadable(short_size) << " short)";
+        mbrgpt_mod->reason = oss.str();
+        return mbrgpt_mod;
+    }
+
+    // debug
+    if(gpt)
+    {
+        PARTITION_INFORMATION_EX pi = PhysicalDiskUtil::FindPartitionInformation(pd_dst, target_partition_number_dst);
+        mbrgpt_mod->MbrGptInfo.GPE[target_partition_number_src-1].LastLBA = (pi.StartingOffset.QuadPart + pi.PartitionLength.QuadPart) / pd_dst->BytesPerSector;
+    }
+    else
+    {
+        PARTITION_INFORMATION_EX pi = PhysicalDiskUtil::FindPartitionInformation(pd_dst, target_partition_number_dst);
+        mbrgpt_mod->MbrGptInfo.PE[target_partition_number_src-1].NumberOfSectors = pi.PartitionLength.QuadPart / pd_dst->BytesPerSector;
+    }
+    
+    mbrgpt_mod->shift_sectors = shift_size;
+    mbrgpt_mod->shift_sectors /= sector_size;
+    mbrgpt_mod->shrinked = true;
+    return mbrgpt_mod;
+}
+
+shared_ptr<MBRGPT> MBRGPT::CreateNew(shared_ptr<VirtualDisk> dest)
 {
     org.reset(new MBRGPT(*this));
     CRC32 crc32(0xedb88320);
@@ -125,7 +250,12 @@ shared_ptr<MBRGPT> MBRGPT::CreateShrinked(shared_ptr<VirtualDisk> dest)
     if(!IsValid()) return mbrgpt_mod;
 
     ULONGLONG dest_size = dest->GetDiskSize();
-    if(dest_size >= vdisk->GetDiskSize()) return mbrgpt_mod;
+    if(dest_size == vdisk->GetDiskSize()) return mbrgpt_mod;
+    if(dest_size > vdisk->GetDiskSize())
+    {
+        mbrgpt_mod->UpdatePartitionTable(dest);
+        return mbrgpt_mod;
+    }
 
     shared_ptr<PhysicalDiskInfo> pd = ForensicAnalysis::CreateDiskInfo(vdisk);
 
@@ -152,14 +282,15 @@ shared_ptr<MBRGPT> MBRGPT::CreateShrinked(shared_ptr<VirtualDisk> dest)
             src_size = pi.StartingOffset.QuadPart + pi.PartitionLength.QuadPart;
         }
     }
-    if(dest_size >=  (gpt ? src_size + pd->BytesPerSector/*Backup GPT Header*/ : src_size))
+    if(dest_size >=  (gpt ? src_size + 33 * pd->BytesPerSector/*Backup GPT header and entries*/ : src_size))
     {
+        mbrgpt_mod->UpdatePartitionTable(dest);
         return mbrgpt_mod;
     }
     if(target_partition_number == 0)
     {
         mbrgpt_mod->valid = false;
-        mbrgpt_mod->reason = _T("Illegal partition number");
+        mbrgpt_mod->reason = _T("Cannot find the shrinkable partition. You need a larger capacity disk");
         return mbrgpt_mod;
     }
 
@@ -182,6 +313,7 @@ shared_ptr<MBRGPT> MBRGPT::CreateShrinked(shared_ptr<VirtualDisk> dest)
     shrinkable_size = shrinkable_block_num * byte_per_cluster;
 
     ULONGLONG shift_size = (src_size - dest_size);
+    if(gpt) shift_size += 33 * (pd->BytesPerSector);// backup GPT(1) + backup parition entry(32)
     ULONGLONG shift_block_num = shift_size / byte_per_cluster;
     if(shift_size % byte_per_cluster == 0)
         shift_size = shift_block_num * byte_per_cluster;
@@ -252,6 +384,7 @@ shared_ptr<MBRGPT> MBRGPT::CreateShrinked(shared_ptr<VirtualDisk> dest)
         update_chs();
     }
 
+    mbrgpt_mod->shrinked = true;
     mbrgpt_mod->modified = true;
     mbrgpt_mod->update_sector();
     return mbrgpt_mod;
@@ -334,4 +467,3 @@ shared_ptr<MBRGPT> MBRGPT::CreateBackupGPT()
     mbrgpt_mod->update_sector();
     return mbrgpt_mod;
 }
-

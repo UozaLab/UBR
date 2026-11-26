@@ -234,11 +234,19 @@ bool PhysicalVSS::CanSkip(DWORD blockindex)
     PartitionSequence part_seq_start = PartitionSequenceUtility::FindPartitionSequence(part_seqs, start_sector);
     PartitionSequence part_seq_end = PartitionSequenceUtility::FindPartitionSequence(part_seqs, end_sector);
 
-    if(part_seq_start.Index == part_seq_end.Index && part_seq_start.invalid)
+    if(part_seq_start.Index != part_seq_end.Index)
       return FALSE;
-    if(part_seq_start.Index == part_seq_end.Index)
-      return skip(part_seq_start, start_sector, end_sector);
-    return FALSE;
+    if(part_seq_start.invalid)
+      return FALSE;
+
+    if(target_partitions.size() != 0)
+    {
+        if(std::find(target_partitions.begin(), target_partitions.end(), part_seq_start.PartitionNumber)
+           == target_partitions.end())
+          return TRUE;
+    }
+    
+    return skip(part_seq_start, start_sector, end_sector);
 }
 
 BOOL PhysicalVSS::GetBlockData(unsigned char* blockdata, DWORD blockindex, DWORD* ByteRead, bool* can_skip)
@@ -418,6 +426,22 @@ DWORD PhysicalVSS::GetActualBlockCount()
         PartitionSequence ps = PartitionSequenceUtility::GetPartitionSequence(part_seqs, partition_number);
 
         std::vector<CLUSTER_RANGE> vcr = itr->second;
+
+        if(target_partitions.size() != 0)
+        {
+            if(std::find(target_partitions.begin(), target_partitions.end(), partition_number)
+               == target_partitions.end())
+            {
+                vcr.clear();
+                CLUSTER_RANGE cr;
+                cr.AddressFrom = 0;
+                cr.AddressTo = ps.PartitionLength;
+                cr.AddressTo /= GetSectorSize();
+                cr.AddressTo /= sectors_per_clusters;
+                if(cr.AddressTo != 0) cr.AddressTo--;
+                vcr.push_back(cr);
+            }
+        }
 
         for(std::vector<CLUSTER_RANGE>::iterator itr_c = vcr.begin(),
             itr_c_end = vcr.end(); itr_c != itr_c_end; itr_c++)

@@ -63,6 +63,7 @@ protected:
     bool vss_created;
     Vss vss;
     std::vector<PartitionSequence> part_seqs;
+    std::vector<int> target_partitions;
     HANDLE handle_current;
     int partition_current;
     EmptyClusterRanges empty_cluster_ranges;
@@ -84,6 +85,7 @@ public:
     bool IsVssSnapshotCreated() { return vss_created; }
     void CreateEmptyClusterRanges();
     bool CanSkip(DWORD blockindex);
+    void ApplyPartitionTarget(std::vector<int> _target_partitions) { target_partitions = _target_partitions; }
     DWORD GetActualBlockCount();
     shared_ptr<PhysicalVSS> GetPtr() { return shared_from_this(); }
 };
